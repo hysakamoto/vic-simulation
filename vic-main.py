@@ -1,30 +1,8 @@
-""" This demo program solves a hyperelastic problem. It is implemented
-in Python by Johan Hake following the C++ demo by Harish Narayanan"""
+""" Simulation of VIC"""
 
-# Copyright (C) 2008-2010 Johan Hake and Garth N. Wells
-#
-# This file is part of DOLFIN.
-#
-# DOLFIN is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# DOLFIN is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with DOLFIN. If not, see <http://www.gnu.org/licenses/>.
-#
-# Modified by Harish Narayanan 2009
-# Modified by Anders Logg 2011
-#
-# First added:  2009-10-11
-# Last changed: 2012-11-12
+# Simulation of hyperelastic solid in initial configuration
 
-# Begin demo
+# Begin simulation
 
 from dolfin import *
 import pdb
@@ -67,31 +45,58 @@ T  = Constant((0.1,  0.0, 0.0))  # Traction force on the boundary
 # Kinematics
 d = u.geometric_dimension() # dimension
 I = Identity(d)             # Identity tensor
-F = I + grad(u)             # Deformation gradient
+F = I + grad(u)             # Deformation gradient - seems like underyling coordinates is initial
 C = F.T*F                   # Right Cauchy-Green tensor
+C = variable(C)             # make it a variable for differntiation
+E = (C-I)/2
+E = variable(E)
+invC = inv(C)               # inverse of C
+
+# virtual Kinematics
+ddotF = grad(v)
+ddotE = 1.0/2.0 * (ddotF.T*F + F.T*ddotF)
 
 # Invariants of deformation tensors
 Ic = tr(C)
 J  = det(F)
 
+
+# incompressible parameters
+F_dev = J**(-1/3) *F
+C_dev = F_dev.T*F_dev
+Ic_dev = tr(C_dev)
+
+
 # Elasticity parameters
-E, nu = 10.0, 0.3
-mu, lmbda = Constant(E/(2*(1 + nu))), Constant(E*nu/((1 + nu)*(1 - 2*nu)))
+Ee, nu = 10.0, 0.3
+mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
 # Stored strain energy density (compressible neo-Hookean model)
-psi = (mu/2)*(Ic - 3) - mu*ln(J) + (lmbda/2)*(ln(J))**2
+# psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
+# psi = lmbda/2*(tr(E)**2) + mu*tr(E*E) #  (material model)
+
+psi = (mu/2)*(Ic_dev-3) + 1/2*mu*100*(ln(J))**2
+
+# PK2 stress tensor
+# S = 2* ( (mu/2)*(diff(Ic,C)) - mu*1/J*diff(J,C) + (lmbda/2) * 2*(ln(J))/J*diff(J,C))
+S = 2*diff(psi, C)
+# S = diff(psi,E)
+# S = mu*(I-invC)+lmbda*ln(J)*invC
 
 # Total potential energy
 Pi = psi*dx - dot(B, u)*dx - dot(T, u)*ds
 
-# Compute first variation of Pi (directional derivative about u in the direction of v)
-F = derivative(Pi, u, v)
+# Compute residual
+# R = tr(S*ddotE.T)*dx - dot(B,v)*dx - dot(T,v)*ds
+R = inner(S, ddotE)*dx - inner(B, v)*dx - inner(T, v)*ds
+# R = derivative(Pi, u, v)
 
 # Compute Jacobian of F
-J = derivative(F, u, du)
+# Jac = derivative(F, u, du)
+Jac = derivative(R, u, du)
 
 set_log_level(DEBUG)
-problem = NonlinearVariationalProblem(F, u, bcs=bcs, J=J)
+problem = NonlinearVariationalProblem(R, u, bcs=bcs, J=Jac)
 solver = NonlinearVariationalSolver(problem)
 solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
 solver.parameters["newton_solver"]["preconditioner"] = "ilu"
