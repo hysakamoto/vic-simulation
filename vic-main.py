@@ -61,19 +61,20 @@ mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
 # Strain energy density (compressible neo-Hookean model)
 # psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
+# psi = lmbda/2*(tr(E)**2) + mu*tr(E*E)
 
 # Strain energy density (nearly incompressible neo-hookean model)
 kappa = mu*10
 C_hat = (IIIc)**(-1.0/3.0)*C
 psi = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
-psi = mu/2*(tr(C_hat)-3) + kappa/2*(J-1)**2
+# psi = mu/2*(tr(C_hat)-3) + kappa/2*(J-1)**2
 
 # PK1 stress tensor
-# P = diff(psi,F)
+P = diff(psi,F)
 # PK2 stress tensor
-# S = inv(F)*P
+S = inv(F)*P
 
-# PK2 stress tensor
+# PK2 stress tensor (need to make C or E as variables)
 # S = 2*diff(psi, C)
 # S = diff(psi,E)
 # S = mu*(I-invC)+lmbda*ln(J)*invC
