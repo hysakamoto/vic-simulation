@@ -48,7 +48,11 @@ d_top    = Expression(("0.0", "0.0", "0.5"))
 d_bottom = Expression(("0.0", "0.0", "0.0"))
 bc_top    = DirichletBC(V.sub(0), d_top, top)
 bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
-bcs = [bc_top, bc_bottom]
+
+p_top    = Expression("10.0")
+bc_ptop = DirichletBC(V.sub(1), p_top, top)
+
+bcs = [bc_top, bc_bottom, bc_ptop]
 ## can predcribe dirichlet pressure condition
 
 # Kinematics
@@ -102,6 +106,7 @@ R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
 # Compute Jacobian of F
 Jac = derivative(R, up, dup)
 
+# Solve the nonlinear system
 set_log_level(DEBUG)
 problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
 solver = NonlinearVariationalSolver(problem)
@@ -114,5 +119,5 @@ file = File("displacement.pvd");
 file << up.sub(0);
 
 # Plot and hold solution
-plot(u, mode = "displacement", axes=True, interactive = True)
+plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
 plot(p, title="pressure", axes=True, interactive = True)
