@@ -16,10 +16,28 @@ ffc_options = {"optimize": True, \
                "precompute_basis_const": True, \
                "precompute_ip_const": True}
 
-m_num = 10 # number of mesh in each dim
 # Create mesh and define function space
+m_num = 10 # number of mesh in each dim
 mesh = UnitCubeMesh(m_num, m_num, m_num)
-V = VectorFunctionSpace(mesh, "Lagrange", 1)
+d = u.geometric_dimension() # dimension
+
+# Define function spaces
+porder = 2
+Pu = VectorFunctionSpace(mesh, "Lagrange", porder) # space for displacements
+Pp = FunctionSpace(mesh, "Lagrange", porder-1)     # space for pressure
+V = MixedFunctionSpace([Pp,Pu])                    # mixed space
+
+# Define functions
+dup = TrialFunction(V)    # Incremental displacement-pressure
+vq  = TestFunction(V)     # Test function
+up  = Function(V)         # Displacement-pressure from previous iteration
+dupsol = Function(V)      # Function in the mixed space to store the solution of the linearized problem
+p, u = split(up)          # Function in each subspace to write the functional
+
+# Loads
+B  = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
+T  = Constant((0.0,  0.0, 0.0))  # Traction force on the boundary
+
 
 # Mark boundary subdomians
 top    = CompiledSubDomain("near(x[2], side) && on_boundary", side = 1.0)
@@ -32,15 +50,7 @@ bc_top    = DirichletBC(V, d_top, top)
 bc_bottom = DirichletBC(V, d_bottom, bottom)
 bcs = [bc_top, bc_bottom]
 
-# Define functions
-du = TrialFunction(V)            # Incremental displacement
-v  = TestFunction(V)             # Test function
-u  = Function(V)                 # Displacement from previous iteration
-B  = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-T  = Constant((0.0,  0.0, 0.0))  # Traction force on the boundary
-
 # Kinematics
-d = u.geometric_dimension() # dimension
 I = Identity(d)             # Identity tensor
 F = I + grad(u)             # Deformation gradient - seems like underyling coordinates is initial
 F = variable(F)
