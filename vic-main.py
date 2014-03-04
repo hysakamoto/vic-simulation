@@ -63,9 +63,10 @@ mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 # psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
 
 # Strain energy density (nearly incompressible neo-hookean model)
-kappa = Constant(mu*10)
+kappa = mu*10
 C_hat = (IIIc)**(-1.0/3.0)*C
 psi = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
+psi = mu/2*(tr(C_hat)-3) + kappa/2*(J-1)**2
 
 # Total potential energy
 Pi = psi*dx - dot(B, u)*dx - dot(T, u)*ds
