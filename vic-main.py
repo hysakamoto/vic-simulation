@@ -76,7 +76,6 @@ C_hat = (IIIc)**(-1.0/3.0)*C
 psi = mu/2*(tr(C_hat)-3) + 1/2*kappa*(J-1)**2
 # psi = mu/2*(tr(C_hat)-3) + 1/2*kappa*ln(J)**2
 
-
 # PK1 stress tensor
 # P = diff(psi,F)
 # PK2 stress tensor
@@ -86,7 +85,6 @@ psi = mu/2*(tr(C_hat)-3) + 1/2*kappa*(J-1)**2
 # S = 2*diff(psi, C)
 # S = diff(psi,E)
 # S = mu*(I-invC)+lmbda*ln(J)*invC
-
 
 ## nearly incompressible neo-hookean PK2
 # S = mu * IIIc**(-1/3)*(I-1/3*Ic*invC) + kappa*(J-1)*J*invC
