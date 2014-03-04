@@ -46,10 +46,11 @@ T  = Constant((0.1,  0.0, 0.0))  # Traction force on the boundary
 d = u.geometric_dimension() # dimension
 I = Identity(d)             # Identity tensor
 F = I + grad(u)             # Deformation gradient - seems like underyling coordinates is initial
+F = variable(F)
 C = F.T*F                   # Right Cauchy-Green tensor
-C = variable(C)             # make it a variable for differntiation
+# C = variable(C)             # make it a variable for differntiation
 E = (C-I)/2
-E = variable(E)
+# E = variable(E)
 invC = inv(C)               # inverse of C
 
 # virtual Kinematics
@@ -61,12 +62,6 @@ Ic = tr(C)
 J  = det(F)
 
 
-# incompressible parameters
-F_dev = J**(-1/3) *F
-C_dev = F_dev.T*F_dev
-Ic_dev = tr(C_dev)
-
-
 # Elasticity parameters
 Ee, nu = 10.0, 0.3
 mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
@@ -75,16 +70,24 @@ mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 # psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
 # psi = lmbda/2*(tr(E)**2) + mu*tr(E*E) #  (material model)
 
-psi = (mu/2)*(Ic_dev-3) + 1/2*mu*100*(ln(J))**2
+# nearly incompressible neo-hookean sed function
+kappa = mu*100
+C_tilda = det(C)**(-1.0/3.0)*C
+# psi = mu/2*(tr(C_tilda)-3) + 1/2*kappa*(J-1)**2
+psi = mu/2*(tr(C_tilda)-3) + 1/2*kappa*ln(J)**2
+
+# PK1 stress tensor
+P = diff(psi,F)
+# PK2 stress tensor
+S = inv(F)*P
 
 # PK2 stress tensor
-# S = 2* ( (mu/2)*(diff(Ic,C)) - mu*1/J*diff(J,C) + (lmbda/2) * 2*(ln(J))/J*diff(J,C))
-S = 2*diff(psi, C)
+# S = 2*diff(psi, C)
 # S = diff(psi,E)
 # S = mu*(I-invC)+lmbda*ln(J)*invC
 
 # Total potential energy
-Pi = psi*dx - dot(B, u)*dx - dot(T, u)*ds
+# Pi = psi*dx - dot(B, u)*dx - dot(T, u)*ds
 
 # Compute residual
 # R = tr(S*ddotE.T)*dx - dot(B,v)*dx - dot(T,v)*ds
@@ -92,7 +95,6 @@ R = inner(S, ddotE)*dx - inner(B, v)*dx - inner(T, v)*ds
 # R = derivative(Pi, u, v)
 
 # Compute Jacobian of F
-# Jac = derivative(F, u, du)
 Jac = derivative(R, u, du)
 
 set_log_level(DEBUG)
