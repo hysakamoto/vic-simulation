@@ -7,6 +7,8 @@
 from dolfin import *
 import pdb
 
+set_log_level(DEBUG)
+
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
@@ -19,7 +21,6 @@ ffc_options = {"optimize": True, \
 # Create mesh and define function space
 m_num = 6 # number of mesh in each dim
 mesh = UnitCubeMesh(m_num, m_num, m_num)
-d = u.geometric_dimension() # dimension
 
 # Define function spaces
 porder = 2
@@ -33,6 +34,9 @@ wq  = TestFunction(V)     # Test function
 up  = Function(V)         # Displacement-pressure from previous iteration
 u, p = split(up)          # Function in each subspace to write the functional
 w, q = split(wq)          # Test Function split
+
+dim = u.geometric_dimension() # dimension
+
 
 # Loads
 B  = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
@@ -55,8 +59,14 @@ bc_ptop = DirichletBC(V.sub(1), p_top, top)
 bcs = [bc_top, bc_bottom, bc_ptop]
 ## can predcribe dirichlet pressure condition
 
+## Initial conditions
+u_1 = interpolate(Expression(("0.0", "0.0", "0.5")), Pu)
+p_1 = interpolate(Expression("0.0"), Pp)
+##
+
+
 # Kinematics
-I = Identity(d)             # Identity tensor
+I = Identity(dim)             # Identity tensor
 F = I + grad(u)             # Deformation gradient - seems like underyling coordinates is initial
 F = variable(F)             # Make F a variable for tensor differentiations
 C = F.T*F                   # Right Cauchy-Green tensor
@@ -106,18 +116,31 @@ R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
 # Compute Jacobian of F
 Jac = derivative(R, up, dup)
 
-# Solve the nonlinear system
-set_log_level(DEBUG)
-problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
-solver = NonlinearVariationalSolver(problem)
-solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-solver.parameters["newton_solver"]["preconditioner"] = "ilu"
-solver.solve()
 
-# Save solution in VTK format
-file = File("displacement.pvd");
-file << up.sub(0);
+dt = 0.3 # time step
 
-# Plot and hold solution
-plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
-plot(p, title="pressure", axes=True, interactive = True)
+T_toal = 1.9
+t = dt
+
+while t<T_toal:
+    print 'time = ', t
+    
+    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
+    solver = NonlinearVariationalSolver(problem)
+    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+    solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+    solver.solve()
+
+
+
+
+# # Solve the nonlinear system
+# 
+
+# # Save solution in VTK format
+# file = File("displacement.pvd");
+# file << up.sub(0);
+
+# # Plot and hold solution
+# plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
+# plot(p, title="pressure", axes=True, interactive = True)
