@@ -161,17 +161,10 @@ while t<T_toal:
     # solve
     solver.solve()
 
-    # plot(v, title="velocity", axes=True, interactive = True)
-    # v_1 = project(v,Pu)
-    # vfile = File("velocity_%d.pvd"%tn);
-    # vfile << v_1;
-    v_1 = project(v,Pu)
-
     # update
     t += dt
     tn+=1
-    # v_1 = (up.sub(0)-up_1)/(dt*omega) - (1-omega)/omega*v_1
-    # up_1.assign(up)
+    v_1 = project(v,Pu)
     assign(u_1,up.sub(0))
 
     # Save solution in VTK format
