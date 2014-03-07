@@ -26,7 +26,7 @@ dim = mesh.topology().dim()
 
 ##  Function Spaces
 porder = 2
-Pu = VectorFunctionSpace(mesh, "Lagrange", porder) # space for displacements
+Pu = VectorFunctionSpace(mesh, "Lagrange", porder-1) # space for displacements
 Pp = FunctionSpace(mesh, "Lagrange", porder-1)     # space for pressure
 V = MixedFunctionSpace([Pu,Pp])                    # mixed space
 
@@ -132,15 +132,17 @@ dfile << up.sub(0);
 pfile = File("pressure_%d.pvd"%tn);
 pfile << up.sub(1);
 
+omega = 1.0
 
 ## Run Simulation
 while t<T_toal:
     print 'time = ', t    
 
     # Compute residual
+    v = (u-up_1.sub(0))/(dt*omega)
     R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx \
-        + (q*J*inner(grad((u-up_1.sub(0))/dt),invF.T))*dx \
+        + (q*J*inner(grad(v),invF.T))*dx \
         + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0) \
         + (inner(g_bar,q))*ds_neumann(1)
 
@@ -159,6 +161,7 @@ while t<T_toal:
     # update
     t += dt
     tn+=1
+    # v_1 = (up.sub(0)-up_1)/(dt*omega) - (1-omega)/omega*v_1
     up_1.assign(up)
 
     # Save solution in VTK format
