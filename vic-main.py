@@ -149,10 +149,10 @@ solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
 solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
 # Save initial conditions in VTK format
-dfile = File("displacement_%d.pvd"%tn);
-dfile << up.sub(0);
-pfile = File("pressure_%d.pvd"%tn);
-pfile << up.sub(1);
+dfile = File("results/displacement.pvd");
+pfile = File("results/pressure.pvd");
+dfile << (up.sub(0),0.0);
+pfile << (up.sub(1),0.0);
 
 ## Run Simulation
 while t<T_toal:
@@ -175,10 +175,8 @@ while t<T_toal:
     assign(u_1,up.sub(0))
 
     # Save solution in VTK format
-    dfile = File("displacement_%d.pvd"%tn);
-    dfile << up.sub(0);
-    pfile = File("pressure_%d.pvd"%tn);
-    pfile << up.sub(1);
+    dfile << (up.sub(0), t);
+    pfile << (up.sub(1), t);
 
     # plot(p_1, title="pressure", axes=True, interactive = True)
     
