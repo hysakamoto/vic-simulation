@@ -77,7 +77,8 @@ bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
 bcs = [bc_bottom, bc_ptop]
 
 ## Initial conditions
-u_1 = interpolate(Constant((0.0, 0.0, 0.0)), Pu)
+u_1 = Function(Pu)
+u_1.interpolate(Constant((0.0, 0.0, 0.0)))
 p_1 = interpolate(Constant(0.0), Pp)
 
 ## Kinematics
@@ -124,10 +125,14 @@ T_toal = 1.0
 t = dt
 tn=0
 # time integration weight
-omega = 1.0
+omega = 0.5
 
 # Compute residual
-v = (u-u_1)/(dt*omega)
+# v = (u-u_1)/(dt*omega)
+v_1 = Function(Pu)
+v_1.interpolate(Constant((0.0, 0.0, 0.0)))
+
+v = (u-u_1)/(dt*omega) - (1-omega)/omega*v_1
 R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
     - p*J*inner(ddotF, invF.T)*dx \
     + (q*J*inner(grad(v),invF.T))*dx \
@@ -155,6 +160,12 @@ while t<T_toal:
 
     # solve
     solver.solve()
+
+    # plot(v, title="velocity", axes=True, interactive = True)
+    # v_1 = project(v,Pu)
+    # vfile = File("velocity_%d.pvd"%tn);
+    # vfile << v_1;
+    v_1 = project(v,Pu)
 
     # update
     t += dt
