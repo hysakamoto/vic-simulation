@@ -77,8 +77,6 @@ bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
 bcs = [bc_bottom, bc_ptop]
 
 ## Initial conditions
-up_1 = Function(V)
-u_1, p_1 = split(up_1)
 u_1 = interpolate(Constant((0.0, 0.0, 0.0)), Pu)
 p_1 = interpolate(Constant(0.0), Pp)
 
@@ -125,6 +123,25 @@ dt = 0.2 # time step
 T_toal = 1.0
 t = dt
 tn=0
+# time integration weight
+omega = 1.0
+
+# Compute residual
+v = (u-u_1)/(dt*omega)
+R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
+    - p*J*inner(ddotF, invF.T)*dx \
+    + (q*J*inner(grad(v),invF.T))*dx \
+    + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0) \
+    + (inner(g_bar,q))*ds_neumann(1)
+
+# Compute Jacobian of F
+Jac = derivative(R, up, dup)
+    
+# Set up the problem
+problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
+solver = NonlinearVariationalSolver(problem)
+solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
 # Save initial conditions in VTK format
 dfile = File("displacement_%d.pvd"%tn);
@@ -132,28 +149,9 @@ dfile << up.sub(0);
 pfile = File("pressure_%d.pvd"%tn);
 pfile << up.sub(1);
 
-omega = 1.0
-
 ## Run Simulation
 while t<T_toal:
     print 'time = ', t    
-
-    # Compute residual
-    v = (u-up_1.sub(0))/(dt*omega)
-    R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
-        - p*J*inner(ddotF, invF.T)*dx \
-        + (q*J*inner(grad(v),invF.T))*dx \
-        + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0) \
-        + (inner(g_bar,q))*ds_neumann(1)
-
-    # Compute Jacobian of F
-    Jac = derivative(R, up, dup)
-    
-    # Set up the problem
-    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
-    solver = NonlinearVariationalSolver(problem)
-    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-    solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
     # solve
     solver.solve()
@@ -162,7 +160,8 @@ while t<T_toal:
     t += dt
     tn+=1
     # v_1 = (up.sub(0)-up_1)/(dt*omega) - (1-omega)/omega*v_1
-    up_1.assign(up)
+    # up_1.assign(up)
+    assign(u_1,up.sub(0))
 
     # Save solution in VTK format
     dfile = File("displacement_%d.pvd"%tn);
