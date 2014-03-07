@@ -20,7 +20,7 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
-def vic_sim( m_num, p_order, dt ):
+def vic_sim( m_num, p_order, dt, omega ):
     """ 
     run the VIC simulation
     """
@@ -125,7 +125,6 @@ def vic_sim( m_num, p_order, dt ):
     T_toal = 1.0       # total time
     t      = 0.0
     tn     = 0         # time step number
-    omega  = 0.5       # time integration weight
 
     ## Define the PDEs
     # Compute residual
@@ -172,6 +171,8 @@ def vic_sim( m_num, p_order, dt ):
 
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
+
+    return up
 
     # Plot and hold solution
     # plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
