@@ -47,7 +47,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
 
     ## Loads
     B     = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-    Trac  = Constant((0.0,  0.0, 5.0)) # Traction force on the boundary
+    Trac  = Constant((0.0,  0.0, 2.0)) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
@@ -132,10 +132,15 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
 
 
     ## Viscoelasticity!!!!
+
+    ## H-value
+    HS = TensorFunctionSpace(mesh, "Lagrange", p_order )
+    H_1 = Function(HS)
+    H_1.interpolate(Constant(np.zeros([3,3])))
     
     ## viscoelastic parameters
     gamma = Constant(20.0)
-    tau = Constant(10.0)
+    tau = Constant(1.0)
 
     ## Kinematics
     F_1    = I + grad(u_1)             # Deformation gradient
@@ -154,7 +159,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     # PK2 stress tensor
     S_1 = invF_1*P_1
 
-    H = exp(-dt_const/tau)*S_1 + (1-exp(-dt_const/tau))*(S-S_1)/(dt_const/tau)
+    H = exp(-dt_const/tau)*H_1 + (1-exp(-dt_const/tau))*(S-S_1)/(dt_const/tau)
     Sc = S+gamma*H
 
 
@@ -186,7 +191,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     pfile << (up.sub(1),0.0);
 
     ### Run Simulation
-    u_max = []
+    u_max = [0.0]
     while t<T_total:
         print 'time = ', t    
 
@@ -198,6 +203,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
         tn   += 1
         v_1  = project(v,Pu)
         assign(u_1,up.sub(0))
+        H_1 = project(H, HS)
 
         # Save solution in VTK format
         dfile << (up.sub(0), t);
