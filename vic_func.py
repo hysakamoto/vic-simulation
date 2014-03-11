@@ -5,6 +5,7 @@
 # Begin simulation
 
 from dolfin import *
+import numpy as np
 import pdb
 
 # DEBUG
@@ -20,7 +21,7 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
-def vic_sim( m_num, p_order, dt, omega ):
+def vic_sim( m_num, p_order, dt, T_total, omega ):
     """ 
     run the VIC simulation
     """
@@ -46,7 +47,7 @@ def vic_sim( m_num, p_order, dt, omega ):
 
     ## Loads
     B     = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-    Trac  = Expression(("0.0","0.0","1.0")) # Traction force on the boundary
+    Trac  = Constant((0.0,  0.0, 5.0)) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
@@ -126,17 +127,15 @@ def vic_sim( m_num, p_order, dt, omega ):
     S = inv(F)*P
 
     ## time steps
-    T_toal = 1.0       # total time
     t      = 0.0
     tn     = 0         # time step number
-
 
 
     ## Viscoelasticity!!!!
     
     ## viscoelastic parameters
-    gamma = Constant(10.0)
-    tau = Constant(5.0)
+    gamma = Constant(20.0)
+    tau = Constant(10.0)
 
     ## Kinematics
     F_1    = I + grad(u_1)             # Deformation gradient
@@ -153,16 +152,18 @@ def vic_sim( m_num, p_order, dt, omega ):
     # PK1 stress tensor
     P_1 = diff(psi_1,F_1)
     # PK2 stress tensor
-    S_1 = inv(F_1)*P_1
+    S_1 = invF_1*P_1
 
-    H = exp(-dt_const/tau)*S_1 + (1-exp(-dt_const/tau))*(S-S_1/(dt_const/tau))    
+    H = exp(-dt_const/tau)*S_1 + (1-exp(-dt_const/tau))*(S-S_1)/(dt_const/tau)
     Sc = S+gamma*H
 
-    ## Define the PDEs
-    # Compute residual
+
+    ## Poroelasticity!!!!
     v_1 = Function(Pu)
     v_1.interpolate(Constant((0.0, 0.0, 0.0)))
     v = (u-u_1)/(dt_const*omega) - (1-omega)/omega*v_1
+
+    # Compute residual
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
@@ -185,7 +186,8 @@ def vic_sim( m_num, p_order, dt, omega ):
     pfile << (up.sub(1),0.0);
 
     ### Run Simulation
-    while t<T_toal:
+    u_max = []
+    while t<T_total:
         print 'time = ', t    
 
         # solve
@@ -203,8 +205,11 @@ def vic_sim( m_num, p_order, dt, omega ):
 
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
+        # pdb.set_trace()
+        u_max.append( np.max(u_1.vector().array()))
 
-    return up
+
+    return u_max
 
     # Plot and hold solution
     # plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
