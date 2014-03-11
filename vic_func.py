@@ -24,6 +24,10 @@ def vic_sim( m_num, p_order, dt, omega ):
     """ 
     run the VIC simulation
     """
+
+    ## avoid recompilation
+    dt_const = Constant(dt)
+
     ## Create mesh and define function space
     mesh = UnitCubeMesh(m_num, m_num, m_num)
     dim  = mesh.topology().dim() 
@@ -104,7 +108,7 @@ def vic_sim( m_num, p_order, dt, omega ):
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Permeability
-    perm   = 0.1
+    perm   = Constant(1.0)
     K_perm = perm*I
 
     ## Potential Energy
@@ -126,12 +130,40 @@ def vic_sim( m_num, p_order, dt, omega ):
     t      = 0.0
     tn     = 0         # time step number
 
+
+
+    ## Viscoelasticity!!!!
+    
+    ## viscoelastic parameters
+    gamma = Constant(10.0)
+    tau = Constant(5.0)
+
+    ## Kinematics
+    F_1    = I + grad(u_1)             # Deformation gradient
+    F_1    = variable(F_1)             # Make F a variable for tensor differentiations
+    C_1    = F_1.T*F_1                   # Right Cauchy-Green tensor
+    invF_1 = inv(F_1)
+    # Invariants of deformation tensors
+    J_1    = det(F_1)
+    Ic_1   = tr(C_1)
+    IIIc_1 = det(C_1)
+    # Strain energy density (nearly incompressible neo-hookean model)
+    C_hat_1 = (IIIc_1)**(-1.0/3.0)*C_1
+    psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
+    # PK1 stress tensor
+    P_1 = diff(psi_1,F_1)
+    # PK2 stress tensor
+    S_1 = inv(F_1)*P_1
+
+    H = exp(-dt_const/tau)*S_1 + (1-exp(-dt_const/tau))*(S-S_1/(dt_const/tau))    
+    Sc = S+gamma*H
+
     ## Define the PDEs
     # Compute residual
     v_1 = Function(Pu)
     v_1.interpolate(Constant((0.0, 0.0, 0.0)))
-    v = (u-u_1)/(dt*omega) - (1-omega)/omega*v_1
-    R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
+    v = (u-u_1)/(dt_const*omega) - (1-omega)/omega*v_1
+    R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0)                     \
@@ -141,7 +173,7 @@ def vic_sim( m_num, p_order, dt, omega ):
     Jac = derivative(R, up, dup)
 
     # Set up the problem
-    problem = NonlinearVariationalProblem(R, up, bcs     = bcs, J=Jac )
+    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
     solver = NonlinearVariationalSolver(problem)
     solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
