@@ -84,6 +84,8 @@ Pi = psi*dx - dot(B, u)*dx - dot(T, u)*ds
 
 # Compute residual
 R = derivative(Pi, u, v)
+# R = tr(S*ddotE.T)*dx - dot(B,v)*dx - dot(T,v)*ds
+# R = inner(S, ddotE)*dx - inner(B, v)*dx - inner(T, v)*ds
 
 # Compute Jacobian of F
 Jac = derivative(R, u, du)
