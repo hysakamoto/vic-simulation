@@ -97,8 +97,6 @@ P = diff(psi,F)
 S = inv(F)*P
 
 
-
-
 ## Viscoelasticity!!!!
 
 ## Initial conditions
@@ -129,7 +127,6 @@ S_1 = inv(F_1)*P_1
 H = exp(-dt_const/tau)*S_1 + (1-exp(-dt_const/tau))*(S-S_1/(dt_const/tau))    
 Sc = S+gamma*H
 
-
 # Compute residual
 # R = derivative(Pi, u, v)
 R = tr(Sc*ddotE.T)*dx - dot(Body,v)*dx - dot(Trac,v)*ds_neumann(0)
@@ -144,7 +141,7 @@ solver = NonlinearVariationalSolver(problem)
 solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
 solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-file = File("displacement.pvd");
+file = File("results/displacement.pvd");
 
 t = 0.0
 tn = 0
@@ -171,16 +168,3 @@ while t<T_total:
     # plot(p_1, title = "pressure", axes=True, interactive = True)
 
 
-# Plot and hold solution
-# plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
-# plot(p, title  = "pressure", axes=True, interactive = True)
-
-
-
-# solver.solve()
-
-# # Save solution in VTK format
-# file << u;
-
-# # Plot and hold solution
-# plot(u, mode = "displacement", axes=True, interactive = True)
