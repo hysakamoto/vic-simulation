@@ -191,7 +191,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     # solver.parameters["nonlinear_solver"] = "snes"
     # solver.parameters["snes_solver"]["method"] = "ls"
 
-    solver.parameters["newton_solver"]["linear_solver"] = "gmres"
+    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
 
