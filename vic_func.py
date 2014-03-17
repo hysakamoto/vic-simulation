@@ -11,7 +11,7 @@ import newton_solve
 reload(newton_solve)
 
 # DEBUG
-set_log_level(DEBUG)
+# set_log_level(DEBUG) #PROGRESS
 
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True

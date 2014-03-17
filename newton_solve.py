@@ -38,4 +38,3 @@ def newton_solver( u, du, u_1, R, Jac, bcs, tol, maxiter, V ):
         eps = numpy.linalg.norm(du.vector().array())
         print 'Norm:', eps
         u.vector()[:] += rlx*du.vector()
-        # u_1.assign(u)
