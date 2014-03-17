@@ -7,6 +7,7 @@
 from dolfin import *
 import numpy as np
 import pdb
+from newton_solve import newton_solver
 
 # DEBUG
 set_log_level(DEBUG)
@@ -84,9 +85,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     bcs = [bc_bottom, bc_ptop, bc_pbottom]
 
     ## Initial conditions
-    u_1 = Function(Pu)
-    u_1.interpolate(Constant((0.0, 0.0, 0.0)))
-    p_1 = interpolate(Constant(0.0), Pp)
+    up_1   = Function(V)         # Displacement-pressure from previous iteration
+    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
+    # u_1 = Function(Pu)
+    assign( up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)), Pu))
+    p_ini = Expression('1.0-x[2]')
+    assign( up_1.sub(1), interpolate(p_ini, Pp))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -185,24 +189,30 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
     ## Save initial conditions in VTK format
+    assign(up, up_1)
     dfile = File("results/displacement.pvd");
     pfile = File("results/pressure.pvd");
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
+
+    dup = Function(V)
+
 
     ### Run Simulation
     u_max = [0.0]
     while t<T_total:
         print 'time = ', t    
 
+        newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
+
         # solve
-        solver.solve()
+        # solver.solve()
 
         # update
         t    += dt
         tn   += 1
         v_1  = project(v,Pu)
-        assign(u_1,up.sub(0))
+        assign(up_1.sub(0),up.sub(0))
         H_1 = project(H, HS)
         S_1 = project(S, HS)
 
@@ -213,7 +223,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
         # pdb.set_trace()
-        u_max.append( np.max(u_1.vector().array()))
+        u_max.append( np.max(u.sub(0).vector().array()))
 
 
     return u_max
