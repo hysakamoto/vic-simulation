@@ -86,12 +86,13 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
+    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
+    assign (up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)),Pu))
+
     # u_1 = Function(Pu)
     # assign( up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)), Pu))
     # p_ini = Expression('1.0-x[2]')
     # assign( up_1.sub(1), interpolate(p_ini, Pp))
-
-    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
