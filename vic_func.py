@@ -7,7 +7,8 @@
 from dolfin import *
 import numpy as np
 import pdb
-from newton_solve import newton_solver
+import newton_solve
+reload(newton_solve)
 
 # DEBUG
 set_log_level(DEBUG)
@@ -88,11 +89,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     up_1   = Function(V)         # Displacement-pressure from previous iteration
     u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
     assign (up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)),Pu))
-
-    # u_1 = Function(Pu)
-    # assign( up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)), Pu))
-    # p_ini = Expression('1.0-x[2]')
-    # assign( up_1.sub(1), interpolate(p_ini, Pp))
+    assign (up_1.sub(1), interpolate(Expression('1.0-x[2]'),Pp))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -186,40 +183,41 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     # Set up the problem
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
-    # solver = PETScSNESSolver("qn")
     solver = NonlinearVariationalSolver(problem)
-
-    # solver.parameters["nonlinear_solver"] = "snes"
-    # solver.parameters["snes_solver"]["method"] = "ls"
-
     solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
+    # solver = PETScSNESSolver("qn")
+    # solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["snes_solver"]["method"] = "ls"
 
     ## Save initial conditions in VTK format
-    # assign(up, up_1)
+    assign(up, up_1)
     dfile = File("results/displacement.pvd");
     pfile = File("results/pressure.pvd");
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
+
+    dup   = Function(V)
 
     ### Run Simulation
     u_max = [0.0]
     while t<T_total:
         print 'time = ', t    
 
-        # newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
+        newton_solve.newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
 
         # solve
-        solver.solve()
+        # solver.solve()
 
         # update
         t    += dt
         tn   += 1
         v_1  = project(v,Pu)
-        assign(up_1.sub(0),up.sub(0))
+        up_1.assign(up)
+        # assign(up_1.sub(0),up.sub(0))
         H_1 = project(H, HS)
-        S_1 = project(S, HS)
+        # S_1 = project(S, HS)
 
         # Save solution in VTK format
         dfile << (up.sub(0), t);
