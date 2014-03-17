@@ -1,12 +1,17 @@
 from dolfin import *
 import numpy
 import pdb
+import pdb
 
 def newton_solver( u, du, u_1, R, Jac, bcs, tol, maxiter, V ):
 
-    # # initial solve
-    # A,b = assemble_system(R, Jac, bcs)
-    # solve(A, up.vector(), b, 'lu')
+    # initial solve
+    A,b = assemble_system(Jac, R, bcs)
+    solve(A, u_1.vector(), b, 'lu')
+    # u.vector()[:] = u_1.vector() - rlx*du.vector()
+    # u_1.assign(u)
+    
+    pdb.set_trace()
 
     # Mark Dirichlet boundaries
     top    = CompiledSubDomain("near(x[2], side) && on_boundary", side = 1.0)

@@ -11,9 +11,9 @@ import vic_func
 reload(vic_func)
 
 # Begin simulation
-m_num = 6
+m_num = 10
 p_order = 1
-T_total = 4.0
+T_total = 80.0
 dt     = 2.0       # time step
 omega = 0.5
 gamma = 20.0

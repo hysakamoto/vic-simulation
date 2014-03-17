@@ -86,11 +86,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
-    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
     # u_1 = Function(Pu)
-    assign( up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)), Pu))
-    p_ini = Expression('1.0-x[2]')
-    assign( up_1.sub(1), interpolate(p_ini, Pp))
+    # assign( up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)), Pu))
+    # p_ini = Expression('1.0-x[2]')
+    # assign( up_1.sub(1), interpolate(p_ini, Pp))
+
+    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -184,29 +185,32 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     # Set up the problem
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
+    # solver = PETScSNESSolver("qn")
     solver = NonlinearVariationalSolver(problem)
-    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+
+    # solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["snes_solver"]["method"] = "ls"
+
+    solver.parameters["newton_solver"]["linear_solver"] = "gmres"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
+
     ## Save initial conditions in VTK format
-    assign(up, up_1)
+    # assign(up, up_1)
     dfile = File("results/displacement.pvd");
     pfile = File("results/pressure.pvd");
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
-
-    dup = Function(V)
-
 
     ### Run Simulation
     u_max = [0.0]
     while t<T_total:
         print 'time = ', t    
 
-        newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
+        # newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
 
         # solve
-        # solver.solve()
+        solver.solve()
 
         # update
         t    += dt
@@ -223,7 +227,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
         # pdb.set_trace()
-        u_max.append( np.max(u.sub(0).vector().array()))
+        u_tent, p_tent = up.split(deepcopy=True) 
+        u_max.append( np.max(u_tent.vector().array()))
 
 
     return u_max
