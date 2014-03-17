@@ -13,14 +13,16 @@ reload(vic_func)
 # Begin simulation
 m_num = 10
 p_order = 1
-T_total = 40.0
+T_total = 80.0
 dt     = 2.0       # time step
 omega = 0.5
+gamma = 20.0
+tau = 1.0
+Ee = 10.0
+nu = 0.45
+perm = 1.0
 
-u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega )
-
-plt.plot(u_max)
-plt.show()
+u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm )
 
 plt.plot(u_max, '-o')
 plt.show()

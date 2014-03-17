@@ -21,7 +21,7 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
-def vic_sim( m_num, p_order, dt, T_total, omega ):
+def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     """ 
     run the VIC simulation
     """
@@ -81,7 +81,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     bc_ptop    = DirichletBC(V.sub(1), p_top, top)
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
 
-    bcs = [bc_bottom, bc_ptop]
+    bcs = [bc_bottom, bc_ptop, bc_pbottom]
 
     ## Initial conditions
     u_1 = Function(Pu)
@@ -105,11 +105,10 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     IIIc = det(C)
 
     # Elasticity parameters
-    Ee, nu    = 10.0, 0.45
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Permeability
-    perm   = Constant(1.0)
+    perm_const = Constant(perm)
     K_perm = perm*I
 
     ## Potential Energy
@@ -130,7 +129,6 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     t      = 0.0
     tn     = 0         # time step number
 
-
     ## Viscoelasticity!!!!
 
     ## H-value
@@ -139,8 +137,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     H_1.interpolate(Constant(np.zeros([3,3])))
     
     ## viscoelastic parameters
-    gamma = Constant(20.0)
-    tau = Constant(1.0)
+    gamma_const = Constant(gamma)
+    tau_const = Constant(tau)
 
     ## Kinematics
     F_1    = I + grad(u_1)             # Deformation gradient
@@ -159,9 +157,11 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
     # PK2 stress tensor
     S_1 = invF_1*P_1
 
-    H = exp(-dt_const/tau)*H_1 + (1-exp(-dt_const/tau))*(S-S_1)/(dt_const/tau)
-    Sc = S+gamma*H
+    # S_1 = Function(HS)
+    # S_1.interpolate(Constant(np.zeros([3,3])))
 
+    H = exp(-dt_const/tau_const)*H_1 + (1-exp(-dt_const/tau_const))*(S-S_1)/(dt_const/tau_const)
+    Sc = S+gamma_const*H
 
     ## Poroelasticity!!!!
     v_1 = Function(Pu)
@@ -204,6 +204,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega ):
         v_1  = project(v,Pu)
         assign(u_1,up.sub(0))
         H_1 = project(H, HS)
+        S_1 = project(S, HS)
 
         # Save solution in VTK format
         dfile << (up.sub(0), t);
