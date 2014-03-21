@@ -183,13 +183,17 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     # Set up the problem
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
+
     solver = NonlinearVariationalSolver(problem)
+    # solver.parameters["nonlinear_solver"] = "newton"
     solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-    # solver = PETScSNESSolver("qn")
-    # solver.parameters["nonlinear_solver"] = "snes"
-    # solver.parameters["snes_solver"]["method"] = "ls"
+    solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["snes_solver"]["line_search"] = "bt"
+    # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
+    # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    # solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
@@ -198,17 +202,17 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
 
-    dup   = Function(V)
+    # dup   = Function(V)
 
     ### Run Simulation
     u_max = [0.0]
     while t<T_total:
         print 'time = ', t    
 
-        newton_solve.newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
+        # newton_solve.newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
 
         # solve
-        # solver.solve()
+        solver.solve()
 
         # update
         t    += dt
