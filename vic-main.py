@@ -54,12 +54,26 @@ bc_bottom = DirichletBC(V, d_bottom, bottom)
 # bcs = [bc_top, bc_bottom]
 bcs = [bc_bottom]
 
+
 # Define functions
 du = TrialFunction(V)            # Incremental displacement
 v  = TestFunction(V)             # Test function
 u  = Function(V)                 # Displacement from previous iteration
+
+## Contact
+zeta = 0.02
+pen_contact=1000
+penetration = Expression(("0.0","0.0",\
+                        "-pen_contact*((x[2])-(1.0-t*zeta))"), \
+                        t=0.0, zeta=zeta, pen_contact=pen_contact)
+# penetration = Expression("1.0")
+# pen_contact = 100
+# contact_trac = penetration*pen_contact
+
+
 Body  = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-Trac  = Constant((0.0,  0.0, 5.0))  # Traction force on the boundary
+# Trac  = ((0.0,  0.0, contact_trac))  # Traction force on the boundary
+Trac = penetration
 
 # Kinematics
 d = u.geometric_dimension() # dimension
@@ -118,7 +132,8 @@ Ic_1   = tr(C_1)
 IIIc_1 = det(C_1)
 # Strain energy density (nearly incompressible neo-hookean model)
 C_hat_1 = (IIIc_1)**(-1.0/3.0)*C_1
-psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
+psi_1 = (mu/2.0)*(Ic_1 - 3) - mu*ln(J_1) + (lmbda/2.0)*(ln(J_1))**2
+# psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
 # PK1 stress tensor
 P_1 = diff(psi_1,F_1)
 # PK2 stress tensor
@@ -129,7 +144,7 @@ Sc = S+gamma*H
 
 # Compute residual
 # R = derivative(Pi, u, v)
-R = tr(Sc*ddotE.T)*dx - dot(Body,v)*dx - dot(Trac,v)*ds_neumann(0)
+R = tr(Sc*ddotE.T)*dx - dot(Body,v)*dx - (dot(Trac,v)+(-pen_contact*u[2])*v[2])*ds_neumann(0)
 # R = inner(S, ddotE)*dx - inner(B, v)*dx - inner(T, v)*ds
 
 # Compute Jacobian of F
@@ -153,6 +168,7 @@ file << (u, t);
 ### Run Simulation
 while t<T_total:
     print 'time = ', t    
+    penetration.t = t
 
     # solve
     solver.solve()
