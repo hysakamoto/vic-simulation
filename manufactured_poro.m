@@ -19,7 +19,9 @@ y_Y = x_X;
 
 % zero initial displacement
 x = int(x_X,X);
-y = int(y_Y,Y);
+y = int(y_Y,Y); 
+% solve('Y*(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2)=y', 'Y') 
+% to get Y in terms of y
 
 ux = x-X;
 uy = y-Y;
