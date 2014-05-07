@@ -25,6 +25,11 @@ m_num = 10 # number of mesh in each dim
 mesh = UnitCubeMesh(m_num, m_num, m_num)
 V = VectorFunctionSpace(mesh, "Lagrange", 1)
 
+# ## boundary mesh
+# bmesh = BoundaryMesh(mesh, "exterior")
+# bbtree = BoundaryBoxTree()
+# bbtree.build(bmesh)
+# distane_to_boundary = MeshFunction("double", mesh, 0)
 
 ## Boundary Conditions
 
@@ -63,9 +68,12 @@ u  = Function(V)                 # Displacement from previous iteration
 ## Contact
 zeta = 0.02
 pen_contact=1000
+# penetration = Expression(("0.0","0.0",\
+#                         "-pen_contact*((x[2])-(1.0-t*zeta))"), \
+#                         t=0.0, zeta=zeta, pen_contact=pen_contact)
 penetration = Expression(("0.0","0.0",\
-                        "-pen_contact*((x[2])-(1.0-t*zeta))"), \
-                        t=0.0, zeta=zeta, pen_contact=pen_contact)
+                        "((x[2])-(1.0-t*zeta))"), \
+                        t=0.0, zeta=zeta)
 # penetration = Expression("1.0")
 # pen_contact = 100
 # contact_trac = penetration*pen_contact
@@ -73,7 +81,35 @@ penetration = Expression(("0.0","0.0",\
 
 Body  = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
 # Trac  = ((0.0,  0.0, contact_trac))  # Traction force on the boundary
-Trac = penetration
+# Trac = penetration
+
+
+# Define function G such that G \cdot n = g
+class NormalTraction(Expression):
+    def __init__(self, mesh):
+        self.mesh = mesh
+    def eval_cell(self, values, x, ufc_cell):
+        cell = Cell(self.mesh, ufc_cell.index)
+        if ((ufc_cell.local_facet)!=-1):
+            n = cell.normal(ufc_cell.local_facet)
+            g = 1.0 # sin(5*x[0])   
+            values[0] = g*n[0]
+            values[1] = g*n[1]
+            values[2] = g*n[2]
+        else:
+            values[0] = 0.0
+            values[1] = 0.0
+            values[2] = 0.0
+    def value_shape(self):
+        return (3,)
+
+
+Trac = NormalTraction(mesh)
+
+
+
+
+
 
 # Kinematics
 d = u.geometric_dimension() # dimension
@@ -110,7 +146,6 @@ P = diff(psi,F)
 # PK2 stress tensor
 S = inv(F)*P
 
-
 ## Viscoelasticity!!!!
 
 ## Initial conditions
@@ -143,8 +178,10 @@ H = exp(-dt_const/tau)*S_1 + (1-exp(-dt_const/tau))*(S-S_1/(dt_const/tau))
 Sc = S+gamma*H
 
 # Compute residual
-# R = derivative(Pi, u, v)
-R = tr(Sc*ddotE.T)*dx - dot(Body,v)*dx - (dot(Trac,v)+(-pen_contact*u[2])*v[2])*ds_neumann(0)
+# R = tr(Sc*ddotE.T)*dx - dot(Body,v)*dx - (dot(Trac,v)+(-pen_contact*u[2])*v[2])*ds_neumann(0)
+N=FacetNormal(mesh) # initial unit normal
+n = F*N/dot(F*N,F*N) # current unit normal
+R = tr(Sc*ddotE.T)*dx - dot(Body,v)*dx - dot(n,v)*ds_neumann(0)
 # R = inner(S, ddotE)*dx - inner(B, v)*dx - inner(T, v)*ds
 
 # Compute Jacobian of F
