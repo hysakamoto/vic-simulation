@@ -47,8 +47,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     w, q = split(wq)           # Test Function split
 
     ## Loads
-    B     = Constant((0.0,  0.0, 1.0))  # Body force per unit volume
-    Trac  = Constant((0.0,  0.0, 0.0)) # Traction force on the boundary
+    B     = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
+    Trac  = Constant((0.0,  0.0, 1.0)) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
@@ -64,8 +64,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
             return on_boundary and abs(x[2] - 1.0) < tol
 
     Gamma_T    = TopBoundary()
-    exterior_facet_domains.set_all(1)
-    Gamma_T.mark(exterior_facet_domains, 0)
+    exterior_facet_domains.set_all(0)
+    Gamma_T.mark(exterior_facet_domains, 1)
     ds_neumann = ds[exterior_facet_domains]
 
     # Mark Dirichlet boundaries
@@ -195,8 +195,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        - (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0)
-        # + (inner(g_bar,q))*ds_neumann(0)
+        - (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(1) \
+        + (inner(g_bar,q))*ds_neumann(0)
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
