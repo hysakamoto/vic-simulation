@@ -85,31 +85,33 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
         tol = 1e-14
         return on_boundary and (abs(x[2])<tol)
 
+
     # top    = CompiledSubDomain("near(x[2], side) && on_boundary", side = 1.0)
     # bottom = CompiledSubDomain("near(x[2], side) && on_boundary", side = 0.0)
 
     # Assign Dirichlet boundaries (x = 0 or x = 1)
     d_top     = Expression(("0.0", "0.0", "0.0"))
     d_bottom  = Expression(("0.0", "0.0", "0.0"))
+
     bc_top    = DirichletBC(V.sub(0), d_top, top)
     bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
 
     p_top = Expression("0.0")
     p_bottom   = Expression("1.0")
     p_side = Expression("0.0")
-    
+
     bc_ptop    = DirichletBC(V.sub(1), p_top, top)
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
     bc_pside = DirichletBC(V.sub(1), p_side, side)
 
-    bcs = [bc_bottom, bc_ptop, bc_ptop]
+    bcs = [bc_bottom, bc_pbottom]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
-    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
+    u_1, p_1 = split(up_1)       # Function in each subspace to write the functional
     assign (up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)),Pu))
     # assign (up_1.sub(1), interpolate(Expression('1.0-x[2]'),Pp))
-    # assign (up_1.sub(1), interpolate(Expression('0'),Pp))
+    assign (up_1.sub(1), interpolate(Expression('0'),Pp))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -131,7 +133,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Permeability
-    K_perm = Constant(np.ones((3,3))*perm) # avoid recompilation
+    K_perm = Constant(np.eye(3)*perm) # avoid recompilation
 
     ## Potential Energy
     # Strain energy density (compressible neo-Hookean model)
@@ -186,6 +188,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     Sc = S+gamma_const*H
 
     ## Poroelasticity!!!!
+    omega_const = Constant(omega)
     v_1 = Function(Pu)
     v_1.interpolate(Constant((0.0, 0.0, 0.0)))
     v = ((u-u_1)/dt_const - (1-omega)*v_1)/omega
@@ -194,16 +197,16 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        - (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(1) \
+        + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(1)                     \
         + (inner(g_bar,q))*ds_neumann(0)
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
 
     # Set up the problem
-    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
-
+    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
     solver = NonlinearVariationalSolver(problem)
+
     solver.parameters["nonlinear_solver"] = "newton"
     solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
