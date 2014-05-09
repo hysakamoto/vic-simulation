@@ -8,7 +8,6 @@ from dolfin import *
 import numpy as np
 import pdb
 import newton_solve
-reload(newton_solve)
 
 # DEBUG
 # set_log_level(DEBUG) #PROGRESS
@@ -48,8 +47,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     w, q = split(wq)           # Test Function split
 
     ## Loads
-    B     = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-    Trac  = Constant((0.0,  0.0, 2.0)) # Traction force on the boundary
+    B     = Constant((0.0,  0.0, 0))  # Body force per unit volume
+    Trac  = Constant((0.0,  0.0, 1.0)) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
@@ -79,10 +78,11 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
 
     p_top = Expression("0.0")
-    p_bottom   = Expression("1.0")
+    p_bottom   = Expression("0.0")
     bc_ptop    = DirichletBC(V.sub(1), p_top, top)
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
 
+    # bcs = [bc_bottom, bc_top, bc_ptop]
     bcs = [bc_bottom, bc_ptop, bc_pbottom]
 
     ## Initial conditions
@@ -175,9 +175,10 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0)                     \
+        - (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0)                     \
         + (inner(g_bar,q))*ds_neumann(1)
 
+    
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
 
@@ -185,11 +186,11 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
 
     solver = NonlinearVariationalSolver(problem)
-    # solver.parameters["nonlinear_solver"] = "newton"
+    solver.parameters["nonlinear_solver"] = "newton"
     solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-    solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["nonlinear_solver"] = "snes"
     # solver.parameters["snes_solver"]["line_search"] = "bt"
     # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
     # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
