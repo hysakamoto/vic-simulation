@@ -22,7 +22,7 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
-def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
+def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_Trac ):
     """ 
     run the VIC simulation
     """
@@ -48,7 +48,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     ## Loads
     B     = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-    Trac  = Constant((0.0,  0.0, 1.0)) # Traction force on the boundary
+    Trac  = Constant(top_Trac) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
@@ -137,12 +137,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     ## Potential Energy
     # Strain energy density (compressible neo-Hookean model)
-    # psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
+    psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
 
     # Strain energy density (nearly incompressible neo-hookean model)
     kappa = mu*10
     C_hat = (IIIc)**(-1.0/3.0)*C
-    psi   = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
+    # psi   = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
 
     # PK1 stress tensor
     P = diff(psi,F)
