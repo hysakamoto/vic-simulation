@@ -241,9 +241,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
         tn   += 1
         v_1  = project(v,Pu)
         up_1.assign(up)
-        # assign(up_1.sub(0),up.sub(0))
-        # H_1 = project(H, HS)
-        # S_1 = project(S, HS)
+        assign(up_1.sub(0),up.sub(0))
+        H_1 = project(H, HS)
+        S_1 = project(S, HS)
 
         # Save solution in VTK format
         dfile << (up.sub(0), t);
