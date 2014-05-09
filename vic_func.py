@@ -95,22 +95,21 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
 
     p_top = Expression("0.0")
-    p_bottom   = Expression("0.0")
+    p_bottom   = Expression("1.0")
     p_side = Expression("0.0")
     
     bc_ptop    = DirichletBC(V.sub(1), p_top, top)
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
     bc_pside = DirichletBC(V.sub(1), p_side, side)
 
-    # bcs = [bc_bottom, bc_top, bc_ptop]
-    bcs = [bc_bottom, bc_pbottom]
+    bcs = [bc_bottom, bc_ptop, bc_ptop]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
     u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
     assign (up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)),Pu))
     # assign (up_1.sub(1), interpolate(Expression('1.0-x[2]'),Pp))
-    assign (up_1.sub(1), interpolate(Expression('0'),Pp))
+    # assign (up_1.sub(1), interpolate(Expression('0'),Pp))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -205,14 +204,14 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
 
     solver = NonlinearVariationalSolver(problem)
-    # solver.parameters["nonlinear_solver"] = "newton"
-    # solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-    # solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+    solver.parameters["nonlinear_solver"] = "newton"
+    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+    solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-    solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["nonlinear_solver"] = "snes"
     # solver.parameters["snes_solver"]["line_search"] = "bt"
-    solver.parameters["snes_solver"]["linear_solver"] = "gmres"
-    solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
+    # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
     # solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
