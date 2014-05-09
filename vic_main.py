@@ -16,11 +16,11 @@ p_order = 1
 T_total =40.0
 dt     = 4.0       # time step
 omega = 0.5
-gamma = 5.0
+gamma = 0.0
 tau = 1.0
 Ee = 4.0
 nu = 0.3
-perm = 100.0
+perm = 0.01
 
 u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm )
 

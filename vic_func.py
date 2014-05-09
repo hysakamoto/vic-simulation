@@ -78,12 +78,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
 
     p_top = Expression("0.0")
-    p_bottom   = Expression("0.0")
+    p_bottom   = Expression("1.0")
     bc_ptop    = DirichletBC(V.sub(1), p_top, top)
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
 
     # bcs = [bc_bottom, bc_top, bc_ptop]
-    bcs = [bc_bottom, bc_ptop, bc_pbottom]
+    bcs = [bc_bottom, bc_pbottom]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
@@ -111,8 +111,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Permeability
-    perm_const = Constant(perm)
-    K_perm = perm*I
+    K_perm = Constant(np.ones((3,3))*perm) # avoid recompilation
 
     ## Potential Energy
     # Strain energy density (compressible neo-Hookean model)
