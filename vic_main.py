@@ -21,9 +21,17 @@ tau     = 1.0
 Ee      = 10.0
 nu      = 0.45
 perm    = 0.001
-top_Trac    = (0.0,0.0,1.0)
+top_trac    = (0.0,0.0,0.0)
+body_force = (0.0,0.0,0.0)
 
-u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_Trac )
+u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega,
+                          Ee, nu, gamma, tau, perm,
+                          top_trac, body_force )
 
 plt.plot(u_max, '-o')
 plt.show()
+
+
+
+ # ((t/200 - 1/10)/pow((pow((t - 20),2)/400 - 2),2) - (t/200 - 1/10)/(pow((-1/(pow((t - 20),2)/400 - 2)),(3/2))*pow((pow((t - 20),2)/400 - 2),2)))*(Z - Z*(pow((t - 20),2)/400 - 1))
+

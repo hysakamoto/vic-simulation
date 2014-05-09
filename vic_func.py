@@ -22,14 +22,15 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
-def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_Trac ):
+def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
+             top_trac, body_force ):
     """ 
     run the VIC simulation
     """
 
     ## avoid recompilation
     dt_const = Constant(dt)
-
+    
     ## Create mesh and define function space
     mesh = UnitCubeMesh(m_num, m_num, m_num)
     dim  = mesh.topology().dim() 
@@ -47,8 +48,11 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_T
     w, q = split(wq)           # Test Function split
 
     ## Loads
-    B     = Constant((0.0,  0.0, 0.0))  # Body force per unit volume
-    Trac  = Constant(top_Trac) # Traction force on the boundary
+    B     = Expression(('0.0', '0.0', \
+                        '((t/200 - 1/10)/pow((pow((t - 20),2)/400 - 2),2) - (t/200 - 1/10)/(pow((-1/(pow((t - 20),2)/400 - 2)),(3/2))*pow((pow((t - 20),2)/400 - 2),2)))*(x[2] - x[2]*(pow((t - 20),2)/400 - 1))'), t=0.0)
+
+    # B     = Constant(body_force)  # Body force per unit volume
+    Trac  = Constant(top_trac) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
@@ -104,7 +108,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_T
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
     bc_pside = DirichletBC(V.sub(1), p_side, side)
 
-    bcs = [bc_bottom, bc_pbottom]
+    # bcs = [bc_bottom, bc_pbottom]
+    bcs = [bc_bottom]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
@@ -229,7 +234,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_T
     ### Run Simulation
     u_max = [0.0]
     while t<T_total:
-        print 'time = ', t    
+        print 'time = ', t 
 
         # newton_solve.newton_solver(up, dup, up_1, R, Jac, bcs, 1e-10, 100, V)
 
@@ -239,6 +244,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_T
         # update
         t    += dt
         tn   += 1
+
+        B.t = t
+
         v_1  = project(v,Pu)
         up_1.assign(up)
         assign(up_1.sub(0),up.sub(0))
@@ -253,8 +261,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, top_T
 
         # pdb.set_trace()
         u_tent, p_tent = up.split(deepcopy=True) 
-        # u_max.append( np.max(u_tent.vector().array()))
-        u_max.append( np.max(p_tent.vector().array()))
+        u_max.append( np.max(u_tent.vector().array()))
+        # u_max.append( np.max(p_tent.vector().array()))
 
 
     return u_max
