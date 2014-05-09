@@ -19,7 +19,7 @@ omega = 0.5
 gamma = 0.0
 tau = 1.0
 Ee = 4.0
-nu = 0.3
+nu = 0.45
 perm = 0.01
 
 u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm )
