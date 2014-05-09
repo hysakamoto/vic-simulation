@@ -137,12 +137,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
     ## Potential Energy
     # Strain energy density (compressible neo-Hookean model)
-    psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
+    # psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
 
     # Strain energy density (nearly incompressible neo-hookean model)
     kappa = mu*10
     C_hat = (IIIc)**(-1.0/3.0)*C
-    # psi   = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
+    psi   = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
 
     # PK1 stress tensor
     P = diff(psi,F)
@@ -191,10 +191,10 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     omega_const = Constant(omega)
     v_1 = Function(Pu)
     v_1.interpolate(Constant((0.0, 0.0, 0.0)))
-    v = ((u-u_1)/dt_const - (1-omega)*v_1)/omega
+    v = ((u-u_1)/dt_const - (1-omega_const)*v_1)/omega_const
 
     # Compute residual
-    R = (inner(S, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
+    R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(1)                     \
