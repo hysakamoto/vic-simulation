@@ -10,7 +10,7 @@ import pdb
 from newton_solve import newton_solver
 
 # DEBUG
-set_log_level(DEBUG)
+# set_log_level(DEBUG)
 
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
@@ -54,8 +54,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     ## Boundary Conditions
 
     # Create mesh function over cell facets
-    exterior_facet_domains = FacetFunction("size_t", mesh)
-
+    # exterior_facet_domains = FacetFunction("size_t", mesh)
+    exterior_facet_domains = MeshFunction("size_t", mesh, mesh.topology().dim()-1)
+    
     # Mark Neumann boundaries
     class TopBoundary(SubDomain):
         def inside(self, x, on_boundary):
@@ -63,36 +64,54 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
             return on_boundary and abs(x[2] - 1.0) < tol
 
     Gamma_T    = TopBoundary()
-    exterior_facet_domains.set_all(1)
-    Gamma_T.mark(exterior_facet_domains, 0)
+    exterior_facet_domains.set_all(0)
+    Gamma_T.mark(exterior_facet_domains, 1)
     ds_neumann = ds[exterior_facet_domains]
 
     # Mark Dirichlet boundaries
-    top    = CompiledSubDomain("near(x[2], side) && on_boundary", side = 1.0)
-    bottom = CompiledSubDomain("near(x[2], side) && on_boundary", side = 0.0)
+    def side(x, on_boundary):
+        tol = 1e-14
+        return on_boundary \
+            and (abs(x[0])<tol \
+                 or (abs(x[0]-1)<tol) \
+                 or (abs(x[1])<tol) \
+                 or (abs(x[1]-1)<tol))
+
+    def top(x, on_boundary):
+        tol = 1e-14
+        return on_boundary and (abs(x[2]-1.0)<tol)
+
+    def bottom(x, on_boundary):
+        tol = 1e-14
+        return on_boundary and (abs(x[2])<tol)
+
+    
+    # top    = CompiledSubDomain("near(x[2], side) && on_boundary", side = 1.0)
+    # bottom = CompiledSubDomain("near(x[2], side) && on_boundary", side = 0.0)
 
     # Assign Dirichlet boundaries (x = 0 or x = 1)
     d_top     = Expression(("0.0", "0.0", "0.0"))
     d_bottom  = Expression(("0.0", "0.0", "0.0"))
+
     bc_top    = DirichletBC(V.sub(0), d_top, top)
     bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
 
     p_top = Expression("0.0")
     p_bottom   = Expression("1.0")
+    p_side = Expression("0.0")
+
     bc_ptop    = DirichletBC(V.sub(1), p_top, top)
     bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
+    bc_pside = DirichletBC(V.sub(1), p_side, side)
 
-    bcs = [bc_bottom, bc_ptop, bc_pbottom]
+    bcs = [bc_bottom, bc_pbottom]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
-    u_1, p_1 = split(up_1)           # Function in each subspace to write the functional
+    u_1, p_1 = split(up_1)       # Function in each subspace to write the functional
     assign (up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)),Pu))
-
-    # u_1 = Function(Pu)
-    # assign( up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)), Pu))
-    # p_ini = Expression('1.0-x[2]')
-    # assign( up_1.sub(1), interpolate(p_ini, Pp))
+    # assign (up_1.sub(1), interpolate(Expression('1.0-x[2]'),Pp))
+    assign (up_1.sub(1), interpolate(Expression('0'),Pp))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -114,8 +133,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Permeability
-    perm_const = Constant(perm)
-    K_perm = perm*I
+    K_perm = Constant(np.eye(3)*perm) # avoid recompilation
 
     ## Potential Energy
     # Strain energy density (compressible neo-Hookean model)
@@ -170,30 +188,34 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
     Sc = S+gamma_const*H
 
     ## Poroelasticity!!!!
+    omega_const = Constant(omega)
     v_1 = Function(Pu)
     v_1.interpolate(Constant((0.0, 0.0, 0.0)))
-    v = (u-u_1)/(dt_const*omega) - (1-omega)/omega*v_1
+    v = (u-u_1)/(dt_const*omega_const) - (1-omega_const)/omega_const*v_1
 
     # Compute residual
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(0)                     \
-        + (inner(g_bar,q))*ds_neumann(1)
+        + (inner(B,w))*dx - (inner(Trac,w))*ds_neumann(1)                     \
+        + (inner(g_bar,q))*ds_neumann(0)
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
 
     # Set up the problem
-    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac )
-    # solver = PETScSNESSolver("qn")
+    problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
     solver = NonlinearVariationalSolver(problem)
 
-    # solver.parameters["nonlinear_solver"] = "snes"
-    # solver.parameters["snes_solver"]["method"] = "ls"
-
+    solver.parameters["nonlinear_solver"] = "newton"
     solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
     solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+
+    # solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["snes_solver"]["line_search"] = "bt"
+    # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
+    # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    # solver.parameters["snes_solver"]["method"] = "tr"
 
 
     ## Save initial conditions in VTK format
@@ -229,7 +251,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm ):
 
         # pdb.set_trace()
         u_tent, p_tent = up.split(deepcopy=True) 
-        u_max.append( np.max(u_tent.vector().array()))
+        # u_max.append( np.max(u_tent.vector().array()))
+        u_max.append( np.max(p_tent.vector().array()))
 
 
     return u_max
