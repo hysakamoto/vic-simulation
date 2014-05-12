@@ -226,7 +226,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         = dirichlet_boundaries(bd_tol, V, 0.0)
 
     # bcs = [bc_ubottom]
-    bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pright]
+    bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
+           bc_pbottom, bc_pleft, bc_pright]
+    # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pright]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
@@ -316,9 +318,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         + (inner(B,w))*dx \
-        - (inner(tbar_top,w))*ds_neumann(0) \
-        - (inner(tbar_right,w))*ds_neumann(2) \
-        - (inner(tbar_back,w))*ds_neumann(4) \
+        # - (inner(tbar_top,w))*ds_neumann(0) \
+        # - (inner(tbar_right,w))*ds_neumann(2) \
+        # - (inner(tbar_back,w))*ds_neumann(4) \
         # + (inner(gbar_top,q))*ds_neumann(0) \
         # + (inner(gbar_right,q))*ds_neumann(2) \
         # + (inner(gbar_back,q))*ds_neumann(4) \
@@ -377,11 +379,14 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         tbar_back.t = t
         tbar_front.t = t 
 
-        # # Define Dirichlet boundaries
-        # bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-        #     bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop \
-        #     = dirichlet_boundaries(bd_tol, V, t)
-
+        # Define Dirichlet boundaries
+        bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+            bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop \
+            = dirichlet_boundaries(bd_tol, V, t)
+        bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
+               bc_pbottom, bc_pleft, bc_pright]
+        problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
+        solver = NonlinearVariationalSolver(problem)
 
         v_1  = project(v,Pu)
         up_1.assign(up)
