@@ -22,6 +22,97 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
+def neumann_boundaries(tol, exterior_facet_domains):
+    '''Mark Neumann Boundaries'''
+    class neum_top(SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary and abs(x[2] - 1.0) < tol
+
+    class neum_bottom(SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary and abs(x[2]) < tol
+
+    class neum_right(SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary and abs(x[0] - 1.0) < tol
+
+    class neum_left(SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary and abs(x[0]) < tol
+
+    class neum_back(SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary and abs(x[1] - 1.0) < tol
+
+    class neum_front(SubDomain):
+        def inside(self, x, on_boundary):
+            return on_boundary and abs(x[1]) < tol
+
+    Gamma_T    = neum_top()
+    exterior_facet_domains.set_all(0)
+    Gamma_T.mark(exterior_facet_domains, 1)
+    ds_neumann = ds[exterior_facet_domains]
+
+    return ds_neumann
+
+def dirichlet_boundaries(tol, V):
+    '''Define Dirichlet Boundaries'''
+
+    # Define Dirichlet boundaries
+    def diri_top(x, on_boundary):
+        return on_boundary and (abs(x[2]-1.0)<tol)
+
+    def diri_bottom(x, on_boundary):
+        return on_boundary and (abs(x[2])<tol)
+
+    def diri_right(x, on_boundary):
+        return on_boundary and (abs(x[0]-1.0)<tol)
+
+    def diri_left(x, on_boundary):
+        return on_boundary and (abs(x[0]-1.0)<tol)
+
+    def diri_back(x, on_boundary):
+        return on_boundary and (abs(x[1]-1.0)<tol)
+
+    def diri_front(x, on_boundary):
+        return on_boundary and (abs(x[1]-1.0)<tol)
+
+    # Assign Dirichlet boundaries - displacements
+    d_top    = Expression(("0.0", "0.0", "0.0"))
+    d_bottom = Expression(("0.0", "0.0", "0.0"))
+    d_right  = Expression(("0.0", "0.0", "0.0"))
+    d_left   = Expression(("0.0", "0.0", "0.0"))
+    d_back   = Expression(("0.0", "0.0", "0.0"))
+    d_front  = Expression(("0.0", "0.0", "0.0"))
+
+    bc_dtop    = DirichletBC(V.sub(0), d_top, diri_top)
+    bc_dbottom = DirichletBC(V.sub(0), d_bottom, diri_bottom)
+    bc_dright  = DirichletBC(V.sub(0), d_right, diri_right)
+    bc_dleft   = DirichletBC(V.sub(0), d_left, diri_left)
+    bc_dback   = DirichletBC(V.sub(0), d_back, diri_back)
+    bc_dfront  = DirichletBC(V.sub(0), d_front, diri_front)
+
+    # Assign Dirichlet boundaries - pressure
+    p_top = Expression("0.0")
+    p_bottom   = Expression("1.0")
+    p_right = Expression("0.0")
+    p_left = Expression("0.0")
+    p_back = Expression("0.0")
+    p_front = Expression("0.0")
+
+    bc_ptop    = DirichletBC(V.sub(1), p_top, diri_top)
+    bc_pbottom = DirichletBC(V.sub(1), p_bottom, diri_bottom)
+    bc_pright = DirichletBC(V.sub(1), p_right, diri_right)
+    bc_pleft = DirichletBC(V.sub(1), p_left, diri_left)
+    bc_pback = DirichletBC(V.sub(1), p_back, diri_back)
+    bc_pfront = DirichletBC(V.sub(1), p_front, diri_front)
+    
+    return bc_dtop, bc_dbottom, \
+        bc_dright, bc_dleft, \
+        bc_dback, bc_dfront, \
+        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop
+
+
 def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
              top_trac, body_force ):
     """ 
@@ -51,65 +142,26 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
     B     = Expression(('0.0', '0.0', \
                         '((t/200 - 1/10)/pow((pow((t - 20),2)/400 - 2),2) - (t/200 - 1/10)/(pow((-1/(pow((t - 20),2)/400 - 2)),(3/2))*pow((pow((t - 20),2)/400 - 2),2)))*(x[2] - x[2]*(pow((t - 20),2)/400 - 1))'), t=0.0)
 
-    # B     = Constant(body_force)  # Body force per unit volume
     Trac  = Constant(top_trac) # Traction force on the boundary
     g_bar = Constant(0.0)            # Normal flux
 
     ## Boundary Conditions
 
     # Create mesh function over cell facets
-    # exterior_facet_domains = FacetFunction("size_t", mesh)
     exterior_facet_domains = MeshFunction("size_t", mesh, mesh.topology().dim()-1)
 
-    # Mark Neumann boundaries
-    class TopBoundary(SubDomain):
-        def inside(self, x, on_boundary):
-            tol = 1E-14   # tolerance for coordinate comparisons
-            return on_boundary and abs(x[2] - 1.0) < tol
+    # Define Neumann boundaries
+    bd_tol = 1E-14   # tolerance for coordinate comparisons
+    ds_neumann = neumann_boundaries(bd_tol, exterior_facet_domains)
 
-    Gamma_T    = TopBoundary()
-    exterior_facet_domains.set_all(0)
-    Gamma_T.mark(exterior_facet_domains, 1)
-    ds_neumann = ds[exterior_facet_domains]
+    # Define Dirichlet boundaries
+    bc_dtop, bc_dbottom, \
+        bc_dright, bc_dleft, \
+        bc_dback, bc_dfront, \
+        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop \
+        = dirichlet_boundaries(bd_tol, V)
 
-    # Mark Dirichlet boundaries
-    def side(x, on_boundary):
-        tol = 1e-14
-        return on_boundary \
-            and (abs(x[0])<tol \
-                 or (abs(x[0]-1)<tol) \
-                 or (abs(x[1])<tol) \
-                 or (abs(x[1]-1)<tol))
-
-    def top(x, on_boundary):
-        tol = 1e-14
-        return on_boundary and (abs(x[2]-1.0)<tol)
-
-    def bottom(x, on_boundary):
-        tol = 1e-14
-        return on_boundary and (abs(x[2])<tol)
-
-
-    # top    = CompiledSubDomain("near(x[2], side) && on_boundary", side = 1.0)
-    # bottom = CompiledSubDomain("near(x[2], side) && on_boundary", side = 0.0)
-
-    # Assign Dirichlet boundaries (x = 0 or x = 1)
-    d_top     = Expression(("0.0", "0.0", "0.0"))
-    d_bottom  = Expression(("0.0", "0.0", "0.0"))
-
-    bc_top    = DirichletBC(V.sub(0), d_top, top)
-    bc_bottom = DirichletBC(V.sub(0), d_bottom, bottom)
-
-    p_top = Expression("0.0")
-    p_bottom   = Expression("1.0")
-    p_side = Expression("0.0")
-
-    bc_ptop    = DirichletBC(V.sub(1), p_top, top)
-    bc_pbottom = DirichletBC(V.sub(1), p_bottom, bottom)
-    bc_pside = DirichletBC(V.sub(1), p_side, side)
-
-    # bcs = [bc_bottom, bc_pbottom]
-    bcs = [bc_bottom]
+    bcs = [bc_dbottom]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
