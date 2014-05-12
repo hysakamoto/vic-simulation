@@ -16,11 +16,11 @@ p_order = 1
 T_total = 40.0
 dt      = 4.0    # time step
 omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
-gamma   = 0.0
+gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
-Ee      = 10.0
+Ee      = 100.0
 nu      = 0.45
-perm    = 0.001
+perm    = 1.0
 top_trac    = (0.0,0.0,0.0)
 body_force = (0.0,0.0,0.0)
 
