@@ -27,28 +27,23 @@ def neumann_boundaries(tol, exterior_facet_domains):
     class neum_top(SubDomain):
         def inside(self, x, on_boundary):
             return on_boundary and abs(x[2] - 1.0) < tol
-
     class neum_bottom(SubDomain):
         def inside(self, x, on_boundary):
             return on_boundary and abs(x[2]) < tol
-
     class neum_right(SubDomain):
         def inside(self, x, on_boundary):
             return on_boundary and abs(x[0] - 1.0) < tol
-
     class neum_left(SubDomain):
         def inside(self, x, on_boundary):
             return on_boundary and abs(x[0]) < tol
-
     class neum_back(SubDomain):
         def inside(self, x, on_boundary):
             return on_boundary and abs(x[1] - 1.0) < tol
-
     class neum_front(SubDomain):
         def inside(self, x, on_boundary):
             return on_boundary and abs(x[1]) < tol
 
-    # first mark everything with 0!
+    # first mark everything with 0
     exterior_facet_domains.set_all(0)
 
     gamma_top = neum_top()
@@ -66,8 +61,6 @@ def neumann_boundaries(tol, exterior_facet_domains):
     gamma_back.mark(exterior_facet_domains, 4)
     gamma_front.mark(exterior_facet_domains, 5)
 
-    # Gamma_T    = neum_top()
-    # Gamma_T.mark(exterior_facet_domains, 1)
     ds_neumann = ds[exterior_facet_domains]
 
     return ds_neumann
@@ -174,7 +167,7 @@ def dirichlet_boundaries(tol, V, t):
     return bc_utop, bc_ubottom, \
         bc_uright, bc_uleft, \
         bc_uback, bc_ufront, \
-        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop
+        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront
 
 
 def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
@@ -202,9 +195,10 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
     u, p = split(up)           # Function in each subspace to write the functional
     w, q = split(wq)           # Test Function split
 
-    ## Loads
-    B     = Expression(('0.0', '0.0', \
-                        '((t/200 - 1/10)/pow((pow((t - 20),2)/400 - 2),2) - (t/200 - 1/10)/(pow((-1/(pow((t - 20),2)/400 - 2)),(3/2))*pow((pow((t - 20),2)/400 - 2),2)))*(x[2] - x[2]*(pow((t - 20),2)/400 - 1))'), t=0.0)
+    ## Loads: Body Force
+    B = Expression(("0.0", "0.0", 
+                   "(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))"), t=0.0)
+
 
     ## Boundary Conditions
 
@@ -222,13 +216,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
 
     # Define Dirichlet boundaries
     bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop \
+        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
         = dirichlet_boundaries(bd_tol, V, 0.0)
 
-    # bcs = [bc_ubottom]
-    bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
-           bc_pbottom, bc_pleft, bc_pright]
-    # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pright]
+    # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
+           # bc_pbottom, bc_pleft, bc_pright]
+    bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
@@ -318,12 +311,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         + (inner(B,w))*dx \
-        # - (inner(tbar_top,w))*ds_neumann(0) \
-        # - (inner(tbar_right,w))*ds_neumann(2) \
-        # - (inner(tbar_back,w))*ds_neumann(4) \
-        # + (inner(gbar_top,q))*ds_neumann(0) \
-        # + (inner(gbar_right,q))*ds_neumann(2) \
-        # + (inner(gbar_back,q))*ds_neumann(4) \
+        - (inner(tbar_top,w))*ds_neumann(0) \
+        - (inner(tbar_right,w))*ds_neumann(2) \
+        - (inner(tbar_back,w))*ds_neumann(4) \
+        + (inner(gbar_top,q))*ds_neumann(0) \
+        + (inner(gbar_right,q))*ds_neumann(2) \
+        + (inner(gbar_back,q))*ds_neumann(4) \
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
