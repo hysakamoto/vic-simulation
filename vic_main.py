@@ -13,8 +13,8 @@ reload(vic_func)
 # Begin simulation
 m_num   = 4
 p_order = 1
-T_total = 40.0
-dt      = 1.0    # time step
+T_total = 20.0
+dt      = 4.0    # time step
 omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0

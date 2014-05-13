@@ -65,36 +65,36 @@ def neumann_boundaries(tol, exterior_facet_domains):
 
     return ds_neumann
 
-def neumann_expressions(t):
+def neumann_expressions(t, mu):
     '''Return the tuple of the neumann boundary conditions'''
 
     ## normal flux neumann bc
-    gbar_top = Expression("(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))", t=t)
-    gbar_bottom = Expression("((-((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))", t=t)
-    gbar_right = Expression("0.0", t=t)
-    gbar_left = Expression("0.0", t=t)
-    gbar_back = Expression("0.0", t=t)
-    gbar_front = Expression("0.0", t=t)
+    gbar_top= Expression("(((400.0*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))*pow((1.0/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0)),(1.0/2.0)))", t=t)
+    gbar_bottom= Expression("(((-400.0*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))*pow((1.0/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0)),(1.0/2.0)))", t=t)
+    gbar_right= Expression("0.0", t=t)
+    gbar_left= Expression("0.0", t=t)
+    gbar_back= Expression("0.0", t=t)
+    gbar_front= Expression("0.0", t=t)
 
     ## traction neumann bc
-    tbar_top = Expression(("0.0",
-                           "0.0",
-                           "((((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)+((1000.0*pow(((((-pow(t,2.0))/400.0)+(t/10.0))+1.0),2.0))/29.0))-(1000.0/29.0))"), t=t)
-    tbar_bottom = Expression(("0.0",
-                              "0.0",
-                              "((((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)-((1000.0*pow(((((-pow(t,2.0))/400.0)+(t/10.0))+1.0),2.0))/29.0))+(1000.0/29.0))"), t=t)
-    tbar_right = Expression(("((((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)+((1000.0*(((-400.0*pow(t,2.0))+(16000.0*t))+160000.0))/(29.0*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))))-(1000.0/29.0))",
+    tbar_top= Expression(("0.0",
+                          "0.0",
+                          "((400.0*(((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)+(mu*(pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)-1.0))))*pow((1.0/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0)),(1.0/2.0)))"), t=t, mu=mu)
+    tbar_bottom= Expression(("0.0",
                              "0.0",
-                             "0.0"), t=t)
-    tbar_left = Expression(("((1000.0/29.0)-((1000.0*(((-400.0*pow(t,2.0))+(16000.0*t))+160000.0))/(29.0*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))))",
+                             "((-400.0*(((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)+(mu*(pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)-1.0))))*pow((1.0/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0)),(1.0/2.0)))"), t=t, mu=mu)
+    tbar_right= Expression(("((((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)-(mu*((1.0/((pow((t-20.0),2.0)/400.0)-2.0))+1.0)))*pow((((400.0/(((-pow(t,2.0))+(40.0*t))+400.0))*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))/160000.0),(1.0/2.0)))",
                             "0.0",
-                            "((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)"), t=t)
-    tbar_back = Expression(("0.0",
-                            "((((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)+((1000.0*(((-400.0*pow(t,2.0))+(16000.0*t))+160000.0))/(29.0*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))))-(1000.0/29.0))",
-                            "0.0"), t=t)
-    tbar_front = Expression(("0.0",
-                             "((1000.0/29.0)-((1000.0*(((-400.0*pow(t,2.0))+(16000.0*t))+160000.0))/(29.0*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))))",
-                             "((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)"), t=t)
+                            "0.0"), t=t, mu=mu)
+    tbar_left= Expression(("((-(((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)-(mu*((1.0/((pow((t-20.0),2.0)/400.0)-2.0))+1.0))))*pow((((400.0/(((-pow(t,2.0))+(40.0*t))+400.0))*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))/160000.0),(1.0/2.0)))",
+                           "0.0",
+                           "0.0"), t=t, mu=mu)
+    tbar_back= Expression(("0.0",
+                           "((((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)-(mu*((1.0/((pow((t-20.0),2.0)/400.0)-2.0))+1.0)))*pow((((400.0/(((-pow(t,2.0))+(40.0*t))+400.0))*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))/160000.0),(1.0/2.0)))",
+                           "0.0"), t=t, mu=mu)
+    tbar_front= Expression(("0.0",
+                            "((-(((((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0))/2.0)-(mu*((1.0/((pow((t-20.0),2.0)/400.0)-2.0))+1.0))))*pow((((400.0/(((-pow(t,2.0))+(40.0*t))+400.0))*pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))/160000.0),(1.0/2.0)))",
+                            "0.0"), t=t, mu=mu)
 
     return gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front, \
         tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front
@@ -114,13 +114,13 @@ def dirichlet_boundaries(tol, V, t):
         return on_boundary and (abs(x[0]-1.0)<tol)
 
     def diri_left(x, on_boundary):
-        return on_boundary and (abs(x[0]-1.0)<tol)
+        return on_boundary and (abs(x[0])<tol)
 
     def diri_back(x, on_boundary):
         return on_boundary and (abs(x[1]-1.0)<tol)
 
     def diri_front(x, on_boundary):
-        return on_boundary and (abs(x[1]-1.0)<tol)
+        return on_boundary and (abs(x[1])<tol)
 
     # Assign Dirichlet boundaries - displacements
     u_top = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[0])",
@@ -179,6 +179,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
     ## avoid recompilation
     dt_const = Constant(dt)
     
+    # Elasticity parameters
+    mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
+    
     ## Create mesh and define function space
     mesh = UnitCubeMesh(m_num, m_num, m_num)
     dim  = mesh.topology().dim() 
@@ -212,7 +215,7 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
     # Get the neumann boundary conditions
     gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front, \
         tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front \
-        = neumann_expressions(dt)
+        = neumann_expressions(dt, mu)
 
     # Define Dirichlet boundaries
     bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
@@ -222,6 +225,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
            # bc_pbottom, bc_pleft, bc_pright]
     bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
+    # bcs = [bc_ubottom, 
+           # bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
@@ -314,9 +319,10 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         - (inner(tbar_top,w))*ds_neumann(0) \
         - (inner(tbar_right,w))*ds_neumann(2) \
         - (inner(tbar_back,w))*ds_neumann(4) \
-        + (inner(gbar_top,q))*ds_neumann(0) \
+        + (inner(gbar_top,q))*ds_neumann(0)\
         + (inner(gbar_right,q))*ds_neumann(2) \
         + (inner(gbar_back,q))*ds_neumann(4) \
+
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -376,6 +382,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
             bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
             = dirichlet_boundaries(bd_tol, V, t+dt)
+        # bcs = [bc_ubottom,
+               # bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
         bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
         # define problem

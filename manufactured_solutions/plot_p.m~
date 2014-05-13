@@ -1,0 +1,7 @@
+
+
+for i=1:100
+    tt(i) = i/100*20;
+    pp(i) = subs(p, [Z,t],[1,tt(i)]);
+end
+plot(tt,pp);
