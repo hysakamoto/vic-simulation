@@ -374,10 +374,9 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
 
         # Define Dirichlet boundaries
         bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-            bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop \
+            bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
             = dirichlet_boundaries(bd_tol, V, t+dt)
-        bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
-               bc_pbottom, bc_pleft, bc_pright]
+        bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
