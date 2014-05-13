@@ -197,8 +197,8 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
 
     ## Loads: Body Force
     B = Expression(("0.0", "0.0", 
-                   "(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))"), t=0.0)
-
+                   "(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))"), 
+                   t=dt)
 
     ## Boundary Conditions
 
@@ -212,12 +212,12 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
     # Get the neumann boundary conditions
     gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front, \
         tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front \
-        = neumann_expressions(0.0)
+        = neumann_expressions(dt)
 
     # Define Dirichlet boundaries
     bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
         bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
-        = dirichlet_boundaries(bd_tol, V, 0.0)
+        = dirichlet_boundaries(bd_tol, V, dt)
 
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
            # bc_pbottom, bc_pleft, bc_pright]
@@ -357,27 +357,29 @@ def vic_sim( m_num, p_order, dt, T_total, omega, Ee, nu, gamma, tau, perm, \
         tn   += 1
 
         # update body force
-        B.t = t
+        B.t = t+dt
         # update boundary conditions
-        gbar_top.t = t
-        gbar_bottom.t = t
-        gbar_right.t = t
-        gbar_left.t = t
-        gbar_back.t = t
-        gbar_front.t = t
-        tbar_top.t = t
-        tbar_bottom.t = t
-        tbar_right.t = t
-        tbar_left.t = t
-        tbar_back.t = t
-        tbar_front.t = t 
+        gbar_top.t = t+dt
+        gbar_bottom.t = t+dt
+        gbar_right.t = t+dt
+        gbar_left.t = t+dt
+        gbar_back.t = t+dt
+        gbar_front.t = t+dt
+        tbar_top.t = t+dt
+        tbar_bottom.t = t+dt
+        tbar_right.t = t+dt
+        tbar_left.t = t+dt
+        tbar_back.t = t+dt
+        tbar_front.t = t+dt 
 
         # Define Dirichlet boundaries
         bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
             bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_ptop \
-            = dirichlet_boundaries(bd_tol, V, t)
+            = dirichlet_boundaries(bd_tol, V, t+dt)
         bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
                bc_pbottom, bc_pleft, bc_pright]
+
+        # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
         solver = NonlinearVariationalSolver(problem)
 
