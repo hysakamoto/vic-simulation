@@ -14,7 +14,7 @@ reload(vic_func)
 m_num   = 4
 p_order = 1
 T_total = 20.0
-dt      = 4.0    # time step
+dt      = 1.0    # time step
 omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
@@ -32,6 +32,11 @@ plt.plot(u_max, '-o')
 plt.show()
 
 
+## analytical solutions
 
- # ((t/200 - 1/10)/pow((pow((t - 20),2)/400 - 2),2) - (t/200 - 1/10)/(pow((-1/(pow((t - 20),2)/400 - 2)),(3/2))*pow((pow((t - 20),2)/400 - 2),2)))*(Z - Z*(pow((t - 20),2)/400 - 1))
+#  X*(-1/((t - 20)^2/400 - 2))^(1/2) - X
+#  Y*(-1/((t - 20)^2/400 - 2))^(1/2) - Y
+#                -Z*((t - 20)^2/400 - 1)
+#  p = -(((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2))*(Z - Z*((t - 20)^2/400 - 1))^2)/2
+
 

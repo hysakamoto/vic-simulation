@@ -15,3 +15,5 @@
   isotropic permeability.
 * Deformation is defined so that there is no (local) volume change.
 * Initial displacement and pressure = 0.
+
+
