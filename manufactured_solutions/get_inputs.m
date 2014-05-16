@@ -19,9 +19,9 @@ stratio = 2.0; % final stretch ratio
 %% initial-to-current
 syms X Y Z t
 
-x = X*(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
-y = Y*(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
-z = Z - Z*((t - tau)^2/tau^2 - 1)*(stratio - 1);
+x = X;
+y = Y;
+z = X*Y*Z*(exp(t)-1)+Z;
 
 %% solutions!!
 
@@ -30,10 +30,9 @@ ux = x-X;
 uy = y-Y;
 uz = z-Z;
 u = [ux;uy;uz];
+
 % pressure
-p  = -(z^2*((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2)))/(2*k);
-gradp = [0; 0; ...
-    -(z*((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2)))/k];
+p  = x*y*z*(exp(t) - 1);
 
 % velocity
 v = diff(u,t);

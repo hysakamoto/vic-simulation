@@ -7,9 +7,13 @@ tau = 20;
 stratio = 2.0;
 % z = Z*stratio at time t=tau
 
-X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
-Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
-Z = z/(1 - ((t - tau)^2/tau^2 - 1)*(stratio - 1));
+X = x;
+Y = y;
+Z = z/(x*y*(exp(t)-1)+1);
+
+% X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
+% Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
+% Z = z/(1 - ((t - tau)^2/tau^2 - 1)*(stratio - 1));
 
 ux = x-X;
 uy = y-Y;
@@ -26,18 +30,11 @@ syms k
 K = eye(3)*k;
 
 % pressure
-pzz = divergence(v,[x,y,z])/k;
-pxx = 0; % px=const
-pyy = 0; % py=const
+p = x*y*z*(exp(t)-1);
 
-pz = int(pzz,z); % pz(t=0) = 0
-p = int(pz,z);
-gradp = gradient(p,[x,y,z]);
+%% source term
+source = simplify(divergence(v-K*gradient(p,[x,y,z]),[x,y,z]));
 
-% check (==0)
-if simplify(divergence(v-K*gradient(p,[x,y,z]),[x,y,z]))==0
-    disp ('conservation of mass good!');
-end
 
 %% Elastic stress (compressible neo-Hookean)
 
@@ -54,7 +51,7 @@ Sigma_E = mu/J*(b-I) + lm/J*(log(J))*I;
 % total Cauchy stress
 Sigma = Sigma_E-p*I;
 
-% body force
+%% body force
 bf(1) = diff(Sigma(1,1),x);
 bf(2) = diff(Sigma(2,2),y);
 bf(3) = diff(Sigma(3,3),z);
@@ -82,6 +79,13 @@ tbar_left = -p*n_top+Sigma_E*n_left;
 tbar_front = -p*n_front+Sigma_E*n_front;
 tbar_back = -p*n_top+Sigma_E*n_back;
 
+gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_front, gbar_back];
+tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_front, tbar_back];
+
+%% initial condition
+
+u_initial = subs(u,t,0);
+p_initial = subs(p,t,0);
 
 %% test
 % 
@@ -97,7 +101,25 @@ tbar_back = -p*n_top+Sigma_E*n_back;
 % 
 
 
+%% Convert to initial representations
 
 
+syms X_ Y_ Z_
+
+source_ = subs(source, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+bf_ = subs(bf, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+
+u_initial_ = subs(u_initial, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+p_initial_ = subs(p_initial, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+
+gbars_ = subs(gbars, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+tbars_ = subs(tbars, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+
+disp(source_)
+disp(bf_)
+disp(u_initial_)
+disp(p_initial_)
+disp(gbars_.')
+disp(tbars_.')
 
 
