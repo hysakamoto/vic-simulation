@@ -123,3 +123,25 @@ for tb in tbars_0:
     print "tbar_" + directions[j] + "= Expression((\"" + k[0] + "\",\n\"" + k[1] + "\",\n\"" + k[2] + "\"), t=dt)"
     j+=1
 
+#### Exact Solutions ####
+
+ux = ' X*(-1/((t - 20)^2/400 - 2))^(1/2) - X'
+uy = ' Y*(-1/((t - 20)^2/400 - 2))^(1/2) - Y'
+uz =  '-Z*((t - 20)^2/400 - 1)'
+p = '-(((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2))*(Z - Z*((t - 20)^2/400 - 1))^2)/2'
+
+U = [ux,uy,uz,p]
+
+for i in range(4):
+    U[i] = U[i].translate(None, " ")
+    U[i] = re.sub('\^', '**', U[i])
+    U[i] = str(rec(ast.parse(U[i]).body[0]) )
+    U[i] = re.sub('X', 'x[0]', U[i])
+    U[i] = re.sub('Y', 'x[1]', U[i])
+    U[i] = re.sub('Z', 'x[2]', U[i])
+    U[i] = U[i].translate(None, " ")
+
+print "u_e = Expression(\"" + U[0] + "\"," + "\"" + U[1] + "\"," +\
+    "\"" + U[2] + "\"" + ", t=dt)"
+
+print "p_e = Expression(\"" + U[3] + "\", d=dt)"

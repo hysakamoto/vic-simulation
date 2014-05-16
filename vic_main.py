@@ -15,7 +15,8 @@ m_num   = 4
 p_order = 1
 T_total = 20.0
 dt      = 1.0    # time step
-omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
+max_it  = 20
+omega   = 1.0    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
 Ee      = 100.0
@@ -24,12 +25,41 @@ perm    = 1.0
 top_trac    = (0.0,0.0,0.0)
 body_force = (0.0,0.0,0.0)
 
-u_max = vic_func.vic_sim( m_num, p_order, dt, T_total, omega,
-                          Ee, nu, gamma, tau, perm,
-                          top_trac, body_force )
+max_its = [2,4,8,16,32]
+dts = [T_total/mit for mit in max_its]
+errors_u = []
+errors_p = []
+u_maxmax = []
 
-plt.plot(u_max, '-o')
-plt.show()
+# for i in range(len(dts)):
+#     dt = dts[i]
+#     max_it = max_its[i]
+
+#     u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
+#                                         Ee, nu, gamma, tau, perm,
+#                                         top_trac, body_force )
+#     errors_u.append(sum(Eus)*dt)
+#     errors_p.append(sum(Eps)*dt)
+#     u_maxmax.append(max(u_max))
+
+T_total = 10.0
+dt      = 2.0    # time step
+max_it  = 1
+
+m_nums = [1,2,4,8,16]
+for i in range(len(m_nums)):
+    m_num = m_nums[i]
+    u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
+                                        Ee, nu, gamma, tau, perm,
+                                        top_trac, body_force )
+    errors_u.append(sum(Eus)*dt)
+    errors_p.append(sum(Eps)*dt)
+    u_maxmax.append(max(u_max))
+
+
+
+# plt.plot(E1s, '-o')
+# plt.show()
 
 
 ## analytical solutions
