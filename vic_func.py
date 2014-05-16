@@ -14,13 +14,13 @@ from vic_bcs import *
 # set_log_level(DEBUG) #PROGRESS
 
 # Optimization options for the form compiler
-parameters["form_compiler"]["cpp_optimize"] = True
-parameters["form_compiler"]["quadrature_degree"] = 2
-parameters["num_threads"] = 2
-ffc_options = {"optimize": True, \
-               "eliminate_zeros": True, \
-               "precompute_basis_const": True, \
-               "precompute_ip_const": True}
+# parameters["form_compiler"]["cpp_optimize"] = True
+# parameters["form_compiler"]["quadrature_degree"] = 2
+# parameters["num_threads"] = 2
+# ffc_options = {"optimize": True, \
+#                "eliminate_zeros": True, \
+#                "precompute_basis_const": True, \
+#                "precompute_ip_const": True}
 
 
 def vic_sim( m_num, p_order, dt, T_total, max_it, \
@@ -269,16 +269,19 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
 
         
         ### Error against exact solutions
-        error_u = (u_tent-u_e)**2*dx
+        error_u = (u-u_e)**2*dx
         Eu = sqrt(assemble(error_u))
 
-        error_p = (p_tent-p_e)**2*dx
+        error_p = (p-p_e)**2*dx
         Ep = sqrt(assemble(error_p))
 
         # Explicit interpolation of u_e onto the same space as u:
         # u_e_V = interpolate(u_e, V)
         # error_u = (u - u_e_V)**2*dx
         # E2 = sqrt(assemble(error_u))
+
+        # Eu_4 = errornorm(u_e, u, normtype='l2', degree=3)
+
 
         Eus.append(Eu)
         Eps.append(Ep)

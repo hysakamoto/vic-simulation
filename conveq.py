@@ -125,6 +125,7 @@ for tb in tbars_0:
 
 #### Exact Solutions ####
 
+## displacement and pressure
 ux = ' X*(-1/((t - 20)^2/400 - 2))^(1/2) - X'
 uy = ' Y*(-1/((t - 20)^2/400 - 2))^(1/2) - Y'
 uz =  '-Z*((t - 20)^2/400 - 1)'
@@ -145,3 +146,21 @@ print "u_e = Expression(\"" + U[0] + "\"," + "\"" + U[1] + "\"," +\
     "\"" + U[2] + "\"" + ", t=dt)"
 
 print "p_e = Expression(\"" + U[3] + "\", d=dt)"
+
+## velocity 
+
+V = ['(X*(t/200 - 1/10))/(2*(-1/((t - 20)^2/400 - 2))^(1/2)*((t - 20)^2/400 - 2)^2)',
+     '(Y*(t/200 - 1/10))/(2*(-1/((t - 20)^2/400 - 2))^(1/2)*((t - 20)^2/400 - 2)^2)',
+     '-Z*(t/200 - 1/10)']
+
+for i in range(3):
+    V[i] = V[i].translate(None, " ")
+    V[i] = re.sub('\^', '**', V[i])
+    V[i] = str(rec(ast.parse(V[i]).body[0]) )
+    V[i] = re.sub('X', 'x[0]', V[i])
+    V[i] = re.sub('Y', 'x[1]', V[i])
+    V[i] = re.sub('Z', 'x[2]', V[i])
+    V[i] = V[i].translate(None, " ")
+
+print "v_e = Expression((\"" + V[0] + "\"," + "\"" + V[1] + "\"," +\
+    "\"" + V[2] + "\"" + "), t=dt)"
