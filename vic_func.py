@@ -23,6 +23,44 @@ from vic_bcs import *
 #                "precompute_ip_const": True}
 
 
+def manufactured_solutiond(dt, k, mu, lm):
+
+    u_e = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))-x[0])","((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))-x[1])","((-x[2])-(x[2]*((pow((t-20.0),2.0)/400.0)-2.0)))"), t=dt)
+    p_e = Expression("((-((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))/(2.0*k))", t=dt, k=k)
+    v_e = Expression(("0.0","0.0","((((x[0]*x[1])*exp(t))*(x[2]+(((x[0]*x[1])*x[2])*(exp(t)-1.0))))/pow((((x[0]*x[1])*(exp(t)-1.0))+1.0),2.0))"), t=dt)
+    source = Expression("0.0", t=dt)
+    body_force = Expression(("0.0","0.0","((-((x[2]*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*((pow((t-20.0),2.0)/400.0)-2.0)))/k)"), t=dt, lm=lm, mu=mu, k=k)
+    gbar_top= Expression("((((-x[2])*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow((1.0/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)),(1.0/2.0)))*((pow((t-20.0),2.0)/400.0)-2.0))", t=dt, k=k)
+    gbar_bottom= Expression("(((x[2]*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow((1.0/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)),(1.0/2.0)))*((pow((t-20.0),2.0)/400.0)-2.0))", t=dt, k=k)
+    gbar_right= Expression("0.0", t=dt, k=k)
+    gbar_left= Expression("0.0", t=dt, k=k)
+    gbar_back= Expression("0.0", t=dt, k=k)
+    gbar_front= Expression("0.0", t=dt, k=k)
+    tbar_top= Expression(("0.0",
+    "0.0",
+    "(pow((1.0/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)),(1.0/2.0))*((mu*(pow(((((-pow(t,2.0))/400.0)+(t/10.0))+1.0),2.0)-1.0))+(((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))/(2.0*k))))"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_bottom= Expression(("0.0",
+    "0.0",
+    "((-pow((1.0/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)),(1.0/2.0)))*((mu*(pow(((((-pow(t,2.0))/400.0)+(t/10.0))+1.0),2.0)-1.0))+(((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))/(2.0*k))))"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_right= Expression(("(((mu*(((160000.0*((((-pow(t,2.0))/400.0)+(t/10.0))+1.0))/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))-1.0))+(((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))/(2.0*k)))*pow((2.0-(pow((t-20.0),2.0)/400.0)),(1.0/2.0)))",
+    "0.0",
+    "0.0"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_left= Expression(("((-((mu*(((160000.0*((((-pow(t,2.0))/400.0)+(t/10.0))+1.0))/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))-1.0))+(((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))/(2.0*k))))*pow((2.0-(pow((t-20.0),2.0)/400.0)),(1.0/2.0)))",
+    "0.0",
+    "0.0"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_back= Expression(("0.0",
+    "(((mu*(((160000.0*((((-pow(t,2.0))/400.0)+(t/10.0))+1.0))/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))-1.0))+(((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))/(2.0*k)))*pow((2.0-(pow((t-20.0),2.0)/400.0)),(1.0/2.0)))",
+    "0.0"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_front= Expression(("0.0",
+    "((-((mu*(((160000.0*((((-pow(t,2.0))/400.0)+(t/10.0))+1.0))/pow((((-pow(t,2.0))+(40.0*t))+400.0),2.0))-1.0))+(((pow(x[2],2.0)*((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))/(2.0*k))))*pow((2.0-(pow((t-20.0),2.0)/400.0)),(1.0/2.0)))",
+    "0.0"), t=dt, mu=mu, lm=lm, k=k)
+
+    tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front]
+    gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front]
+
+    return [u_e, p_e, v_e, source, body_force, tbars, gbars]
+
+
 def vic_sim( m_num, p_order, dt, T_total, max_it, \
              omega, Ee, nu, gamma, tau, perm, \
              top_trac, body_force ):
@@ -30,21 +68,16 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     run the VIC simulation
     """
 
-
-    u_e_str = ("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))-x[0])","((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))-x[1])","((-x[2])*((pow((t-20.0),2.0)/400.0)-1.0))")
-    p_e_str = "((-(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0)))/2.0)"
-
-    v_e_str = ("((x[0]*((t/200.0)-(1.0/10.0)))/((2.0*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))","((x[1]*((t/200.0)-(1.0/10.0)))/((2.0*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0)))","((-x[2])*((t/200.0)-(1.0/10.0)))")
-
-    # Exact solutions
-    u_e = Expression(u_e_str, t=dt)
-    p_e = Expression(p_e_str, t=dt)
-
     ## avoid recompilation
     dt_const = Constant(dt)
     
     # Elasticity parameters
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
+
+    # Exact solutions
+    [u_e, p_e, v_e, source, body_force, tbars, gbars] \
+        = manufactured_solutiond(dt, perm, mu, lmbda)
+
     
     ## Create mesh and define function space
     mesh = UnitCubeMesh(m_num, m_num, m_num)
@@ -62,11 +95,6 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     u, p = split(up)           # Function in each subspace to write the functional
     w, q = split(wq)           # Test Function split
 
-    ## Loads: Body Force
-    B = Expression(("0.0", "0.0", 
-                   "(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*(x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))))"), 
-                   t=dt)
-
     ## Boundary Conditions
 
     # Create mesh function over cell facets
@@ -77,20 +105,21 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     ds_neumann = neumann_boundaries(bd_tol, exterior_facet_domains)
 
     # Get the neumann boundary conditions
-    gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front, \
-        tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front \
-        = neumann_expressions(dt, mu)
+    gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front \
+        = gbars
+    tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front \
+        = tbars
 
     # Define Dirichlet boundaries
     bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
         bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
-        = dirichlet_boundaries(bd_tol, V, dt)
+        = dirichlet_boundaries(bd_tol, V, dt, u_e, p_e)
 
-    # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, 
-           # bc_pbottom, bc_pleft, bc_pright]
+    # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+    #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
     bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
     # bcs = [bc_ubottom, 
-           # bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
+    # bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
@@ -160,7 +189,9 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     IIIc_1 = det(C_1)
     # Strain energy density (nearly incompressible neo-hookean model)
     C_hat_1 = (IIIc_1)**(-1.0/3.0)*C_1
-    psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
+    # psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
+    # compressible neo-Hookean
+    psi_1 = (mu/2.0)*(Ic_1 - 3.0) - mu*ln(J_1) + (lmbda/2.0)*(ln(J_1))**2.0
     # PK1 stress tensor
     P_1 = diff(psi_1,F_1)
     # PK2 stress tensor
@@ -179,7 +210,8 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        + (inner(B,w))*dx \
+        - (source*q)*dx \
+        + (inner(body_force,w))*dx \
         - (inner(tbar_top,w))*ds_neumann(0) \
         - (inner(tbar_right,w))*ds_neumann(2) \
         - (inner(tbar_back,w))*ds_neumann(4) \
@@ -224,12 +256,35 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
         # solve
         solver.solve()
 
+        ### Error against exact solutions
+        error_u = (u-u_e)**2*dx
+        Eu = sqrt(assemble(error_u))
+
+        error_p = (p-p_e)**2*dx
+        Ep = sqrt(assemble(error_p))
+
+        # Explicit interpolation of u_e onto the same space as u:
+        # u_e_V = interpolate(u_e, V)
+        # error_u = (u - u_e_V)**2*dx
+        # E2 = sqrt(assemble(error_u))
+        # Eu_4 = errornorm(u_e, u, normtype='l2', degree=3)
+
+        Eus.append(Eu)
+        Eps.append(Ep)
+
+        # pdb.set_trace()
+        u_tent, p_tent = up.split(deepcopy=True) 
+
+        u_max.append( np.max(u_tent.vector().array()))
+
         # update
         t    += dt
         tn   += 1
 
         # update body force
-        B.t = t+dt
+        body_force.t = t+dt
+        # update source term
+        source.t = t+dt
         # update boundary conditions
         gbar_top.t = t+dt
         gbar_bottom.t = t+dt
@@ -243,13 +298,18 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
         tbar_left.t = t+dt
         tbar_back.t = t+dt
         tbar_front.t = t+dt 
+        # update exact solutions
+        u_e.t = t+dt
+        p_e.t = t+dt
 
         # Define Dirichlet boundaries
         bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
             bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
-            = dirichlet_boundaries(bd_tol, V, t+dt)
-        # bcs = [bc_ubottom,
-               # bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
+            = dirichlet_boundaries(bd_tol, V, t+dt, u_e, p_e)
+
+        # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+        #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+
         bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
         # define problem
@@ -268,32 +328,8 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
 
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
-        # pdb.set_trace()
-        u_tent, p_tent = up.split(deepcopy=True) 
 
         
-        ### Error against exact solutions
-        error_u = (u-u_e)**2*dx
-        Eu = sqrt(assemble(error_u))
-
-        error_p = (p-p_e)**2*dx
-        Ep = sqrt(assemble(error_p))
-
-        # Explicit interpolation of u_e onto the same space as u:
-        # u_e_V = interpolate(u_e, V)
-        # error_u = (u - u_e_V)**2*dx
-        # E2 = sqrt(assemble(error_u))
-
-        # Eu_4 = errornorm(u_e, u, normtype='l2', degree=3)
-
-
-        Eus.append(Eu)
-        Eps.append(Ep)
-        u_max.append( np.max(u_tent.vector().array()))
-
-        # update body force
-        u_e.t = t+dt
-        p_e.t = t+dt
 
     return u_max, Eus, Eps
 

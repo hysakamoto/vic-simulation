@@ -7,13 +7,20 @@ tau = 20;
 stratio = 2.0;
 % z = Z*stratio at time t=tau
 
-X = x;
-Y = y;
-Z = z/(x*y*(exp(t)-1)+1);
+% permeability
+syms k
+K = eye(3)*k;
 
-% X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
-% Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
-% Z = z/(1 - ((t - tau)^2/tau^2 - 1)*(stratio - 1));
+% X = x;
+% Y = y;
+% Z = z/(x*y*(exp(t)-1)+1);
+
+X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
+Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
+Z = z/(1 - ((t - tau)^2/tau^2 - 1)*(stratio - 1));
+p = -(z^2*((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2)))/(2*k);
+
+
 
 ux = x-X;
 uy = y-Y;
@@ -25,12 +32,11 @@ v = diff(u,t);
 invF = [gradient(X,[x,y,z]).'; gradient(Y,[x,y,z]).'; gradient(Z,[x,y,z]).'];
 F = inv(invF);
 
-% permeability
-syms k
-K = eye(3)*k;
+
 
 % pressure
-p = x*y*z*(exp(t)-1);
+% p = 0;
+% p = x*y*z*(exp(t)-1);
 
 %% source term
 source = simplify(divergence(v-K*gradient(p,[x,y,z]),[x,y,z]));
@@ -55,7 +61,7 @@ Sigma = Sigma_E-p*I;
 bf(1) = diff(Sigma(1,1),x);
 bf(2) = diff(Sigma(2,2),y);
 bf(3) = diff(Sigma(3,3),z);
-bf = bf.';
+bf = bf.'*J;
 
 %% Boundary conditions: Neumann
 n_top = [0;0;1];
@@ -65,22 +71,26 @@ n_left = n_right*-1;
 n_back = [0;1;0];
 n_front = n_back*-1;
 
-gbar_top = (-K*gradient(p,[x,y,z])).'*n_top; % inner product
-gbar_bottom = (-K*gradient(p,[x,y,z])).'*n_bottom;
-gbar_right = (-K*gradient(p,[x,y,z])).'*n_right; % inner product
-gbar_left = (-K*gradient(p,[x,y,z])).'*n_left;
-gbar_front = (-K*gradient(p,[x,y,z])).'*n_front; % inner product
-gbar_back = (-K*gradient(p,[x,y,z])).'*n_back;
+dsdS = @(n) (J*sqrt((n.'*invF)*(invF.'*n)));
+gbar = @(n) (-K*gradient(p,[x,y,z])).'*n * dsdS(n);
+tbar = @(n) (-p*n+Sigma_E*n) * dsdS(n);
 
-tbar_top = -p*n_top+Sigma_E*n_top;
-tbar_bottom = -p*n_top+Sigma_E*n_bottom;
-tbar_right = -p*n_right+Sigma_E*n_right;
-tbar_left = -p*n_top+Sigma_E*n_left;
-tbar_front = -p*n_front+Sigma_E*n_front;
-tbar_back = -p*n_top+Sigma_E*n_back;
+gbar_top = gbar(n_top);
+gbar_bottom = gbar(n_bottom);
+gbar_right = gbar(n_right);
+gbar_left = gbar(n_left);
+gbar_back = gbar(n_back);
+gbar_front = gbar(n_front);
 
-gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_front, gbar_back];
-tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_front, tbar_back];
+tbar_top = tbar(n_top);
+tbar_bottom = tbar(n_bottom);
+tbar_right = tbar(n_right);
+tbar_left = tbar(n_left);
+tbar_back = tbar(n_back);
+tbar_front = tbar(n_front);
+
+gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front];
+tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front];
 
 %% initial condition
 
@@ -103,23 +113,46 @@ p_initial = subs(p,t,0);
 
 %% Convert to initial representations
 
-
 syms X_ Y_ Z_
 
-source_ = subs(source, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
-bf_ = subs(bf, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+% solve('x/(-1/((t - 20)^2/400 - 2))^(1/2)-X_=0', 'x')
+% solve('y/(-1/((t - 20)^2/400 - 2))^(1/2)-Y_=0', 'y')
+% solve('-z/((t - 20)^2/400 - 2)-Z_=0', 'z')
 
-u_initial_ = subs(u_initial, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
-p_initial_ = subs(p_initial, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+x_ = X_ *(-1/((t - 20)^2/400 - 2))^(1/2);
+y_ = Y_ *(-1/((t - 20)^2/400 - 2))^(1/2);
+z_ = -Z_ * ((t - 20)^2/400 - 2);
 
-gbars_ = subs(gbars, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
-tbars_ = subs(tbars, [x,y,z], [X_,Y_,X_*Y_*Z_*(exp(t)-1)+Z_]);
+u_ = subs(u, [x,y,z], [x_,y_,z_]);
+p_ = subs(p, [x,y,z], [x_,y_,z_]);
+v_ = subs(v, [x,y,z], [x_,y_,z_]);
 
-disp(source_)
-disp(bf_)
-disp(u_initial_)
-disp(p_initial_)
-disp(gbars_.')
-disp(tbars_.')
+source_ = subs(source, [x,y,z], [x_,y_,z_]);
+bf_ = subs(bf, [x,y,z], [x_,y_,z_]);
+
+u_initial_ = subs(u_initial, [x,y,z], [x_,y_,z_]);
+p_initial_ = subs(p_initial, [x,y,z], [x_,y_,z_]);
+
+gbars_ = subs(gbars, [x,y,z], [x_,y_,z_]);
+tbars_ = subs(tbars, [x,y,z], [x_,y_,z_]);
+
+disp('u = ')
+disp(u_);
+disp('p = ')
+disp(p_);
+disp('v = ')
+disp(v_);
+disp('source = ')
+disp(source_);
+disp('bf = ')
+disp(bf_);
+disp('u_initial = ')
+disp(u_initial_);
+disp('p_initial = ')
+disp(p_initial_);
+disp('gbars = ')
+disp(gbars_.');
+disp('tbars = ')
+disp(tbars_.');
 
 

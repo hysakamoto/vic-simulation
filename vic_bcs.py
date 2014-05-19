@@ -80,7 +80,7 @@ def neumann_expressions(t, mu):
         tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front
 
 
-def dirichlet_boundaries(tol, V, t):
+def dirichlet_boundaries(tol, V, t, u_e, p_e):
     '''Define Dirichlet Boundaries'''
 
     # Define Dirichlet boundaries
@@ -103,46 +103,20 @@ def dirichlet_boundaries(tol, V, t):
         return on_boundary and (abs(x[1])<tol)
 
     # Assign Dirichlet boundaries - displacements
-    u_top = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[0])",
-                     "((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[1])",
-                     "(1.0-(pow((t-20.0),2.0)/400.0))"), t=t)
-    u_bottom = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[0])",
-                     "((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[1])",
-                     "0.0"), t=t)
-    u_right = Expression(("(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5))-1.0)",
-                     "((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[1])",
-                     "((-x[2])*((pow((t-20.0),2.0)/400.0)-1.0))"), t=t)
-    u_left = Expression(("0.0",
-                     "((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[1])",
-                     "((-x[2])*((pow((t-20.0),2.0)/400.0)-1.0))"), t=t)
-    u_back = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[0])",
-                     "(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5))-1.0)",
-                     "((-x[2])*((pow((t-20.0),2.0)/400.0)-1.0))"), t=t)
-    u_front = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(0.5)))-x[0])",
-                     "0.0",
-                     "((-x[2])*((pow((t-20.0),2.0)/400.0)-1.0))"), t=t)
-
-    bc_utop    = DirichletBC(V.sub(0), u_top, diri_top)
-    bc_ubottom = DirichletBC(V.sub(0), u_bottom, diri_bottom)
-    bc_uright  = DirichletBC(V.sub(0), u_right, diri_right)
-    bc_uleft   = DirichletBC(V.sub(0), u_left, diri_left)
-    bc_uback   = DirichletBC(V.sub(0), u_back, diri_back)
-    bc_ufront  = DirichletBC(V.sub(0), u_front, diri_front)
+    bc_utop    = DirichletBC(V.sub(0), u_e, diri_top)
+    bc_ubottom = DirichletBC(V.sub(0), u_e, diri_bottom)
+    bc_uright  = DirichletBC(V.sub(0), u_e, diri_right)
+    bc_uleft   = DirichletBC(V.sub(0), u_e, diri_left)
+    bc_uback   = DirichletBC(V.sub(0), u_e, diri_back)
+    bc_ufront  = DirichletBC(V.sub(0), u_e, diri_front)
 
     # Assign Dirichlet boundaries - pressure
-    p_top = Expression("0.0", t=t)
-    p_bottom = Expression("((-(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0)))/2.0)", t=t)
-    p_right = Expression("((-(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0)))/2.0)", t=t)
-    p_left = Expression("((-(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0)))/2.0)", t=t)
-    p_back = Expression("((-(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0)))/2.0)", t=t)
-    p_front = Expression("((-(((((t/200.0)-(1.0/10.0))/pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))-(((t/200.0)-(1.0/10.0))/(pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(3.0/2.0))*pow(((pow((t-20.0),2.0)/400.0)-2.0),2.0))))*pow((x[2]-(x[2]*((pow((t-20.0),2.0)/400.0)-1.0))),2.0)))/2.0)", t=t)
-
-    bc_ptop    = DirichletBC(V.sub(1), p_top, diri_top)
-    bc_pbottom = DirichletBC(V.sub(1), p_bottom, diri_bottom)
-    bc_pright = DirichletBC(V.sub(1), p_right, diri_right)
-    bc_pleft = DirichletBC(V.sub(1), p_left, diri_left)
-    bc_pback = DirichletBC(V.sub(1), p_back, diri_back)
-    bc_pfront = DirichletBC(V.sub(1), p_front, diri_front)
+    bc_ptop    = DirichletBC(V.sub(1), p_e, diri_top)
+    bc_pbottom = DirichletBC(V.sub(1), p_e, diri_bottom)
+    bc_pright = DirichletBC(V.sub(1), p_e, diri_right)
+    bc_pleft = DirichletBC(V.sub(1), p_e, diri_left)
+    bc_pback = DirichletBC(V.sub(1), p_e, diri_back)
+    bc_pfront = DirichletBC(V.sub(1), p_e, diri_front)
     
     return bc_utop, bc_ubottom, \
         bc_uright, bc_uleft, \
