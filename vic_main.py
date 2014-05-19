@@ -42,12 +42,12 @@ u_maxmax = []
 #     errors_p.append(sum(Eps)*dt)
 #     u_maxmax.append(max(u_max))
 
-T_total = 20.0
+T_total = 10.0
 dt      = 2.0    # time step
 max_it  = int(T_total/dt)
 
 m_nums = [1,2,4,8,16]
-# m_nums = [4]
+m_nums = [4]
 for i in range(len(m_nums)):
     m_num = m_nums[i]
     u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
@@ -56,7 +56,6 @@ for i in range(len(m_nums)):
     errors_u.append(sum(Eus)*dt)
     errors_p.append(sum(Eps)*dt)
     u_maxmax.append(max(u_max))
-
 
 
 # plt.plot(E1s, '-o')

@@ -11,15 +11,16 @@ stratio = 2.0;
 syms k
 K = eye(3)*k;
 
-% X = x;
-% Y = y;
-% Z = z/(x*y*(exp(t)-1)+1);
+X = x;
+Y = y;
+Z = z/(x*y*(exp(t/20)-1)+1);
+p = x*y*z*(exp(t)-1);
+p = 0;
 
-X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
-Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
-Z = z/(1 - ((t - tau)^2/tau^2 - 1)*(stratio - 1));
-p = -(z^2*((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2)))/(2*k);
-
+% X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
+% Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
+% Z = z/(1 - ((t - tau)^2/tau^2 - 1)*(stratio - 1));
+% p = -(z^2*((t/200 - 1/10)/((t - 20)^2/400 - 2)^2 - (t/200 - 1/10)/((-1/((t - 20)^2/400 - 2))^(3/2)*((t - 20)^2/400 - 2)^2)))/(2*k);
 
 
 ux = x-X;
@@ -32,11 +33,6 @@ v = diff(u,t);
 invF = [gradient(X,[x,y,z]).'; gradient(Y,[x,y,z]).'; gradient(Z,[x,y,z]).'];
 F = inv(invF);
 
-
-
-% pressure
-% p = 0;
-% p = x*y*z*(exp(t)-1);
 
 %% source term
 source = simplify(divergence(v-K*gradient(p,[x,y,z]),[x,y,z]));
@@ -100,15 +96,29 @@ p_initial = subs(p,t,0);
 
 %% Convert to initial representations
 
-syms X_ Y_ Z_
+syms X0 Y0 Z0
 
-% solve('x/(-1/((t - 20)^2/400 - 2))^(1/2)-X_=0', 'x')
-% solve('y/(-1/((t - 20)^2/400 - 2))^(1/2)-Y_=0', 'y')
-% solve('-z/((t - 20)^2/400 - 2)-Z_=0', 'z')
+% solve('x/(-1/((t - 20)^2/400 - 2))^(1/2)-X0=0', 'x')
+% solve('y/(-1/((t - 20)^2/400 - 2))^(1/2)-Y0=0', 'y')
+% solve('-z/((t - 20)^2/400 - 2)-Z0=0', 'z')
+% x_ = X0 *(-1/((t - 20)^2/400 - 2))^(1/2);
+% y_ = Y0 *(-1/((t - 20)^2/400 - 2))^(1/2);
+% z_ = -Z0 * ((t - 20)^2/400 - 2);
 
-x_ = X_ *(-1/((t - 20)^2/400 - 2))^(1/2);
-y_ = Y_ *(-1/((t - 20)^2/400 - 2))^(1/2);
-z_ = -Z_ * ((t - 20)^2/400 - 2);
+A=solve(strcat(char(X), ' == X'), ...
+    strcat(char(Y), ' == Y'),...
+    strcat(char(Z), ' == Z'),...
+    'x','y','z');
+x_char = char(A.x);
+y_char = char(A.y);
+z_char = char(A.z);
+x_char = strrep(strrep(strrep(x_char, 'X', 'X0'), 'Y','Y0'), 'Z', 'Z0');
+y_char = strrep(strrep(strrep(y_char, 'X', 'X0'), 'Y','Y0'), 'Z', 'Z0');
+z_char = strrep(strrep(strrep(z_char, 'X', 'X0'), 'Y','Y0'), 'Z', 'Z0');
+
+x_ = sym(x_char);
+y_ = sym(y_char);
+z_ = sym(z_char);
 
 u_ = subs(u, [x,y,z], [x_,y_,z_]);
 p_ = subs(p, [x,y,z], [x_,y_,z_]);

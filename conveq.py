@@ -41,9 +41,9 @@ for i in range(4):
     U[i] = U[i].translate(None, " ")
     U[i] = re.sub('\^', '**', U[i])
     U[i] = str(rec(ast.parse(U[i]).body[0]) )
-    U[i] = re.sub('X\_', 'x[0]', U[i])
-    U[i] = re.sub('Y\_', 'x[1]', U[i])
-    U[i] = re.sub('Z\_', 'x[2]', U[i])
+    U[i] = re.sub('X0', 'x[0]', U[i])
+    U[i] = re.sub('Y0', 'x[1]', U[i])
+    U[i] = re.sub('Z0', 'x[2]', U[i])
     U[i] = U[i].translate(None, " ")
 
 print "u_e = Expression((\"" + U[0] + "\"," + "\"" + U[1] + "\"," +\
@@ -56,9 +56,9 @@ for i in range(3):
     V[i] = V[i].translate(None, " ")
     V[i] = re.sub('\^', '**', V[i])
     V[i] = str(rec(ast.parse(V[i]).body[0]) )
-    V[i] = re.sub('X\_', 'x[0]', V[i])
-    V[i] = re.sub('Y\_', 'x[1]', V[i])
-    V[i] = re.sub('Z\_', 'x[2]', V[i])
+    V[i] = re.sub('X0', 'x[0]', V[i])
+    V[i] = re.sub('Y0', 'x[1]', V[i])
+    V[i] = re.sub('Z0', 'x[2]', V[i])
     V[i] = V[i].translate(None, " ")
 
 print "v_e = Expression((\"" + V[0] + "\"," + "\"" + V[1] + "\"," +\
@@ -68,9 +68,9 @@ print "v_e = Expression((\"" + V[0] + "\"," + "\"" + V[1] + "\"," +\
 source = source.translate(None, " ")
 source = re.sub('\^', '**', source)
 source = str(rec(ast.parse(source).body[0]) )
-source = re.sub('X\_', 'x[0]', source)
-source = re.sub('Y\_', 'x[1]', source)
-source = re.sub('Z\_', 'x[2]', source)
+source = re.sub('X0', 'x[0]', source)
+source = re.sub('Y0', 'x[1]', source)
+source = re.sub('Z0', 'x[2]', source)
 source = source.translate(None, " ")
 
 print "source = Expression(\"" + source + "\", t=dt)"
@@ -80,9 +80,9 @@ for i in range(3):
     bf[i] = bf[i].translate(None, " ")
     bf[i] = re.sub('\^', '**', bf[i])
     bf[i] = str(rec(ast.parse(bf[i]).body[0]) )
-    bf[i] = re.sub('X\_', 'x[0]', bf[i])
-    bf[i] = re.sub('Y\_', 'x[1]', bf[i])
-    bf[i] = re.sub('Z\_', 'x[2]', bf[i])
+    bf[i] = re.sub('X0', 'x[0]', bf[i])
+    bf[i] = re.sub('Y0', 'x[1]', bf[i])
+    bf[i] = re.sub('Z0', 'x[2]', bf[i])
     bf[i] = bf[i].translate(None, " ")
 
 print "body_force = Expression((\"" + bf[0] + "\"," + "\"" + bf[1] + "\"," +\
@@ -95,9 +95,9 @@ for i in range(len(gbars)):
     k = k.replace(" ", "")
     k = re.sub('\^', '**', k)
     k = str(rec(ast.parse(k).body[0]) )
-    k = re.sub('X\_', 'x[0]', k)
-    k = re.sub('Y\_', 'x[1]', k)
-    k = re.sub('Z\_', 'x[2]', k)
+    k = re.sub('X0', 'x[0]', k)
+    k = re.sub('Y0', 'x[1]', k)
+    k = re.sub('Z0', 'x[2]', k)
     k = k.translate(None, " ")
     gbars_c.append(k)
     print "gbar_" + directions[i] +"= Expression(\"" + k + "\", t=dt, k=k)"
@@ -112,9 +112,9 @@ for tb in tbars:
         k[i] = k[i].replace(" ", "")
         k[i] = k[i].replace('^', '**')
         k[i] = str(rec(ast.parse(k[i]).body[0]) )
-        k[i] = re.sub('X\_', 'x[0]', k[i])
-        k[i] = re.sub('Y\_', 'x[1]', k[i])
-        k[i] = re.sub('Z\_', 'x[2]', k[i])
+        k[i] = re.sub('X0', 'x[0]', k[i])
+        k[i] = re.sub('Y0', 'x[1]', k[i])
+        k[i] = re.sub('Z0', 'x[2]', k[i])
         k[i] = k[i].translate(None, " ")
     tbars_c.append(k)
     print "tbar_" + directions[j] + "= Expression((\"" + k[0] + "\",\n\"" + k[1] + "\",\n\"" + k[2] + "\"), t=dt, mu=mu, lm=lm, k=k)"
