@@ -16,7 +16,7 @@ p_order = 1
 T_total = 20.0
 dt      = 1.0    # time step
 max_it  = 20
-omega   = 1.0    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
+omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
 Ee      = 100.0
@@ -43,7 +43,7 @@ u_maxmax = []
 #     u_maxmax.append(max(u_max))
 
 T_total = 10.0
-dt      = 2.0    # time step
+dt      = 1.0    # time step
 max_it  = int(T_total/dt)
 
 m_nums = [1,2,4,8,16]
