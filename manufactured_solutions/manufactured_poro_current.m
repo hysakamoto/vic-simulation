@@ -97,19 +97,6 @@ tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front];
 u_initial = subs(u,t,0);
 p_initial = subs(p,t,0);
 
-%% test
-% 
-% [X1,X2,X3]=ndgrid([0:0.1:1],[0:0.1:1],[0:0.1:1]);
-% stratio = 2;
-% tau = 1;
-% 
-% for t=0:0.1:1.2
-%     plot_z( X1,X2,X3, t, tau, stratio );
-%     pause
-% end
-%  
-% 
-
 
 %% Convert to initial representations
 
@@ -136,23 +123,63 @@ p_initial_ = subs(p_initial, [x,y,z], [x_,y_,z_]);
 gbars_ = subs(gbars, [x,y,z], [x_,y_,z_]);
 tbars_ = subs(tbars, [x,y,z], [x_,y_,z_]);
 
-disp('u = ')
-disp(u_);
-disp('p = ')
-disp(p_);
-disp('v = ')
-disp(v_);
-disp('source = ')
-disp(source_);
-disp('bf = ')
-disp(bf_);
-disp('u_initial = ')
-disp(u_initial_);
-disp('p_initial = ')
-disp(p_initial_);
-disp('gbars = ')
-disp(gbars_.');
-disp('tbars = ')
-disp(tbars_.');
+%% Output to file
+fileID = fopen('../exact_solutions.py','w');
+
+
+%% u,p
+fprintf(fileID, 'U = [''%s'',\n ''%s'',\n ''%s'',\n ''%s'']\n\n', ...
+    char(u_(1)), char(u_(2)), char(u_(3)), char(p_));
+
+%% v
+fprintf(fileID, 'V = [''%s'',\n ''%s'',\n ''%s'']\n\n', ...
+    char(v_(1)), char(v_(2)), char(v_(3)));
+
+%% source
+fprintf(fileID, 'source = ''%s''\n\n', ...
+    char(source_));
+
+%% body force
+fprintf(fileID, 'bf = [''%s'', ''%s'', ''%s'']\n\n', ...
+    char(bf_(1)), char(bf_(2)), char(bf_(3)));
+
+%% u_initial
+fprintf(fileID, 'u_initial = [''%s'', ''%s'', ''%s'']\n\n', ...
+    char(u_initial_(1)), char(u_initial_(2)), char(u_initial_(3)) );
+
+%% p_initial
+fprintf(fileID, 'p_initial = ''%s''\n\n', char(p_initial_));
+
+%% gbars
+fprintf(fileID,'gbars = \\\n[');
+for i=1:length(gbars_)
+    fprintf(fileID,'''%s''',char(gbars_(i)));
+    if i<length(gbars_)
+        fprintf(fileID,',\n');
+    end
+end
+fprintf(fileID,']\n\n');
+
+%% tbars
+[n,m] = size(tbars_);
+fprintf(fileID,'tbars = \\\n[');
+for i=1:m
+    fprintf(fileID,'[');
+    for j=1:n
+        fprintf(fileID,'''%s''',char(tbars_(j,i)));
+        if j<n
+            fprintf(fileID,',\n');
+        end
+    end
+    fprintf(fileID,']');
+    if i<m
+        fprintf(fileID,', \n');
+    end
+end
+fprintf(fileID,']\n\n');
+
+
+fclose(fileID);
+
 
 
