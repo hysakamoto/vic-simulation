@@ -34,8 +34,14 @@ def rec(n):
 directions = ["top", "bottom", "right", "left", "back", "front"]
 
 
-#### Exact Solutions ####
+#### Exact Solutions from MATLAB ####
 execfile("exact_solutions.py")
+
+#### Write in file ####
+f = open('manufactured_solutions.py', 'w')
+
+f.write('from dolfin import *\n\n')
+f.write('def manufactured_solutions(dt, k, mu, lm):\n\n')
 
 for i in range(4):
     U[i] = U[i].translate(None, " ")
@@ -46,10 +52,10 @@ for i in range(4):
     U[i] = re.sub('Z0', 'x[2]', U[i])
     U[i] = U[i].translate(None, " ")
 
-print "u_e = Expression((\"" + U[0] + "\"," + "\"" + U[1] + "\"," +\
-    "\"" + U[2] + "\"" + "), t=dt)"
+f.write( "    u_e = Expression((\"" + U[0] + "\"," + "\"" + U[1] + "\"," +\
+    "\"" + U[2] + "\"" + "), t=dt)\n\n")
 
-print "p_e = Expression(\"" + U[3] + "\", t=dt, k=k)"
+f.write( "    p_e = Expression(\"" + U[3] + "\", t=dt, k=k)\n\n" )
 
 ## velocity 
 for i in range(3):
@@ -61,8 +67,8 @@ for i in range(3):
     V[i] = re.sub('Z0', 'x[2]', V[i])
     V[i] = V[i].translate(None, " ")
 
-print "v_e = Expression((\"" + V[0] + "\"," + "\"" + V[1] + "\"," +\
-    "\"" + V[2] + "\"" + "), t=dt)"
+f.write( "    v_e = Expression((\"" + V[0] + "\"," + "\"" + V[1] + "\"," +\
+    "\"" + V[2] + "\"" + "), t=dt)\n\n")
 
 #### source ####
 source = source.translate(None, " ")
@@ -73,7 +79,7 @@ source = re.sub('Y0', 'x[1]', source)
 source = re.sub('Z0', 'x[2]', source)
 source = source.translate(None, " ")
 
-print "source = Expression(\"" + source + "\", t=dt)"
+f.write( "    source = Expression(\"" + source + "\", t=dt)\n\n" )
 
 #### body force ####
 for i in range(3):
@@ -85,8 +91,8 @@ for i in range(3):
     bf[i] = re.sub('Z0', 'x[2]', bf[i])
     bf[i] = bf[i].translate(None, " ")
 
-print "body_force = Expression((\"" + bf[0] + "\"," + "\"" + bf[1] + "\"," +\
-    "\"" + bf[2] + "\"" + "), t=dt, lm=lm, mu=mu, k=k)"
+f.write( "    body_force = Expression((\"" + bf[0] + "\"," + "\"" + bf[1] + "\"," +\
+    "\"" + bf[2] + "\"" + "), t=dt, lm=lm, mu=mu, k=k)\n\n" )
 
 #### normal flux bc ####
 gbars_c = []
@@ -100,8 +106,9 @@ for i in range(len(gbars)):
     k = re.sub('Z0', 'x[2]', k)
     k = k.translate(None, " ")
     gbars_c.append(k)
-    print "gbar_" + directions[i] +"= Expression(\"" + k + "\", t=dt, k=k)"
+    f.write( "    gbar_" + directions[i] +"= Expression(\"" + k + "\", t=dt, k=k)\n" )
 
+f.write('\n')
 
 #### traction bc ####
 tbars_c = []
@@ -117,8 +124,11 @@ for tb in tbars:
         k[i] = re.sub('Z0', 'x[2]', k[i])
         k[i] = k[i].translate(None, " ")
     tbars_c.append(k)
-    print "tbar_" + directions[j] + "= Expression((\"" + k[0] + "\",\n\"" + k[1] + "\",\n\"" + k[2] + "\"), t=dt, mu=mu, lm=lm, k=k)"
+    f.write( "    tbar_" + directions[j] + "= Expression((\"" + k[0] + "\",\n\"" + k[1] + "\",\n\"" + k[2] + "\"), t=dt, mu=mu, lm=lm, k=k)\n" )
     j+=1
+
+f.write('\n')
+
 
 #### initial conditions #### 
 
@@ -131,8 +141,8 @@ for i in range(3):
     u_initial[i] = re.sub('Z0', 'x[2]', u_initial[i])
     u_initial[i] = u_initial[i].translate(None, " ")
 
-print "u_initial = Expression((\"" + u_initial[0] + "\"," + "\"" + u_initial[1] + "\"," +\
-    "\"" + u_initial[2] + "\"" + "), lm=lm, mu=mu, k=k)"
+f.write( "    u_initial = Expression((\"" + u_initial[0] + "\"," + "\"" + u_initial[1] \
+         + "\"," + "\"" + u_initial[2] + "\"" + "), lm=lm, mu=mu, k=k)\n\n" )
 
 p_initial = p_initial.translate(None, " ")
 p_initial = re.sub('\^', '**', p_initial)
@@ -142,4 +152,11 @@ p_initial = re.sub('Y0', 'x[1]', p_initial)
 p_initial = re.sub('Z0', 'x[2]', p_initial)
 p_initial = p_initial.translate(None, " ")
 
-print "p_initial = Expression(\"" + p_initial + "\", t=dt, k=k)"
+f.write( "    p_initial = Expression(\"" + p_initial + "\", t=dt, k=k)\n\n" )
+
+
+f.write('    tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front]\n\n')
+f.write('    gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front]\n\n')
+f.write('    return [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial]\n\n')
+
+f.close()

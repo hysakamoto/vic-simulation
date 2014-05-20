@@ -10,6 +10,11 @@ import matplotlib.pyplot as plt
 import vic_func
 reload(vic_func)
 
+## Generate the manufactured solutions, bcs, ics
+print "Generating manufactured solutions from MATLAB output..."
+execfile("conveq.py")
+
+
 # Begin simulation
 m_num   = 4
 p_order = 1
@@ -20,7 +25,7 @@ omega   = 1.0    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
 Ee      = 100.0
-nu      = 0.45
+nu      = 0.3
 perm    = 1.0
 top_trac    = (0.0,0.0,0.0)
 body_force = (0.0,0.0,0.0)
@@ -42,11 +47,12 @@ u_maxmax = []
 #     errors_p.append(sum(Eps)*dt)
 #     u_maxmax.append(max(u_max))
 
-T_total = 4.0
-dt      = 1.0    # time step
+T_total = 10.0
+dt      = 1    # time step
 max_it  = int(T_total/dt)
 
 m_nums = [1,2,4,8,16]
+m_nums = [4]
 for i in range(len(m_nums)):
     m_num = m_nums[i]
     u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
@@ -56,6 +62,10 @@ for i in range(len(m_nums)):
     errors_p.append(sum(Eps)*dt)
     u_maxmax.append(max(u_max))
 
+
+print errors_u
+print errors_p
+print u_maxmax
 
 # plt.loglog(m_nums, errors_u,'-o'); 
 # plt.show()
