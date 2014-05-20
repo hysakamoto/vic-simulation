@@ -91,7 +91,9 @@ end
 % traction
 % dadA = J/(sqrt(n*bn))
 % t0 = t(dadA) wood 129
-tbar = @(n) Sigma*n;
+% t = normalize(F*t0); wood 82
+
+tbar = @(n0) Sigma*(F*n0/norm(F*n0)); % use current normal
 tbar_0 = @(n0) tbar(n0)*dsdS(n0); % assuming that normal direction does not change (second n0 should be n)
 
 tbars_0 = sym(zeros(3,6));

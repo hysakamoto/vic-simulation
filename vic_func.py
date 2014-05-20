@@ -14,46 +14,52 @@ from vic_bcs import *
 # set_log_level(DEBUG) #PROGRESS
 
 # Optimization options for the form compiler
-# parameters["form_compiler"]["cpp_optimize"] = True
-# parameters["form_compiler"]["quadrature_degree"] = 2
-# parameters["num_threads"] = 2
-# ffc_options = {"optimize": True, \
-#                "eliminate_zeros": True, \
-#                "precompute_basis_const": True, \
-#                "precompute_ip_const": True}
+parameters["form_compiler"]["cpp_optimize"] = True
+parameters["form_compiler"]["quadrature_degree"] = 2
+parameters["num_threads"] = 2
+ffc_options = {"optimize": True, \
+               "eliminate_zeros": True, \
+               "precompute_basis_const": True, \
+               "precompute_ip_const": True}
 
 
 def manufactured_solutiond(dt, k, mu, lm):
 
+
+
     u_e = Expression(("0.0","0.0","(((x[2]-(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))/(((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)))-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))"), t=dt)
-    p_e = Expression("(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))", t=dt, k=k)
+    p_e = Expression("0.0", t=dt, k=k)
     v_e = Expression(("0.0","0.0","((((x[0]*x[1])*exp((t/20.0)))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/(20.0*pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)))"), t=dt)
-    source = Expression("(((x[0]*x[1])*exp((t/20.0)))/(20.0*pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)))", t=dt)
-    body_force = Expression(("((-((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((((x[1]*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))+((lm*(x[1]-(x[1]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))-(((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(x[1]-(x[1]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))))","((-((((x[0]*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))+((lm*(x[0]-(x[0]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))-(((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(x[0]-(x[0]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))","((((mu*(((((2.0*pow(x[0],2.0))*pow((exp((t/20.0))-1.0),2.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))+((((2.0*pow(x[1],2.0))*pow((exp((t/20.0))-1.0),2.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))-((x[0]*x[1])*(exp((t/20.0))-1.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))"), t=dt, lm=lm, mu=mu, k=k)
-    gbar_top= Expression("((((((-x[0])*x[1])*k)*(exp((t/20.0))-1.0))*pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))", t=dt, k=k)
-    gbar_bottom= Expression("(((((x[0]*x[1])*k)*(exp((t/20.0))-1.0))*pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))", t=dt, k=k)
-    gbar_right= Expression("(((((-x[1])*k)*(exp((t/20.0))-1.0))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))", t=dt, k=k)
-    gbar_left= Expression("((((x[1]*k)*(exp((t/20.0))-1.0))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))", t=dt, k=k)
-    gbar_back= Expression("(((((-x[0])*k)*(exp((t/20.0))-1.0))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))", t=dt, k=k)
-    gbar_front= Expression("((((x[0]*k)*(exp((t/20.0))-1.0))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))", t=dt, k=k)
-    tbar_top= Expression(("(((((x[1]*mu)*(exp((t/20.0))-1.0))*pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
-    "(((((x[0]*mu)*(exp((t/20.0))-1.0))*pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
-    "((pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))+((mu*(((pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))-1.0))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))-(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))))"), t=dt, mu=mu, lm=lm, k=k)
-    tbar_bottom= Expression(("((-((((x[1]*mu)*(exp((t/20.0))-1.0))*pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
-    "((-((((x[0]*mu)*(exp((t/20.0))-1.0))*pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
-    "(((-pow((((1.0/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),4.0))),(1.0/2.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))*((((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))+((mu*(((pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))-1.0))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))-(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))))"), t=dt, mu=mu, lm=lm, k=k)
-    tbar_right= Expression(("((((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))-(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
+    source = Expression("((((x[0]*x[1])*exp((t/20.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))/(20.0*pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)))", t=dt)
+    body_force = Expression(("((-(((lm*(x[1]-(x[1]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))-(((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(x[1]-(x[1]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))","((-(((lm*(x[0]-(x[0]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))-(((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(x[0]-(x[0]*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))","(mu*(((((2.0*pow(x[0],2.0))*pow((exp((t/20.0))-1.0),2.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))+((((2.0*pow(x[1],2.0))*pow((exp((t/20.0))-1.0),2.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0))))"), t=dt, lm=lm, mu=mu, k=k)
+    gbar_top= Expression("0.0", t=dt, k=k)
+    gbar_bottom= Expression("0.0", t=dt, k=k)
+    gbar_right= Expression("0.0", t=dt, k=k)
+    gbar_left= Expression("0.0", t=dt, k=k)
+    gbar_back= Expression("0.0", t=dt, k=k)
+    gbar_front= Expression("0.0", t=dt, k=k)
+    tbar_top= Expression(("(((((x[1]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))-(((((x[1]*lm)*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)))",
+    "(((((x[0]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))-(((((x[0]*lm)*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)))",
+    "(((((((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))+((mu*(((pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))-1.0))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))/(((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0))-((((pow(x[0],2.0)*mu)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/(pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))))-((((pow(x[1],2.0)*mu)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/(pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))))"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_bottom= Expression(("((((((x[1]*lm)*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))-((((x[1]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))))",
+    "((((((x[0]*lm)*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0))-((((x[0]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))))",
+    "((((((pow(x[0],2.0)*mu)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/(pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))-(((((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))+((mu*(((pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)+(((pow(x[0],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))+(((pow(x[1],2.0)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/pow(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0),2.0)))-1.0))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))/(((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)))+((((pow(x[1],2.0)*mu)*pow((exp((t/20.0))-1.0),2.0))*pow(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))),2.0))/(pow((((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0),2.0)*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))))"), t=dt, mu=mu, lm=lm, k=k)
+    tbar_right= Expression(("(lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))",
     "0.0",
     "((((x[1]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))"), t=dt, mu=mu, lm=lm, k=k)
-    tbar_left= Expression(("((-(((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))-(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
+    tbar_left= Expression(("((-lm)*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))",
     "0.0",
     "((-(((x[1]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))"), t=dt, mu=mu, lm=lm, k=k)
     tbar_back= Expression(("0.0",
-    "((((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))-(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
+    "(lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))",
     "((((x[0]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))"), t=dt, mu=mu, lm=lm, k=k)
     tbar_front= Expression(("0.0",
-    "((-(((lm*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))-(((x[0]*x[1])*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0)))))))*((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))",
+    "((-lm)*log(((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0)))",
     "((-(((x[0]*mu)*(exp((t/20.0))-1.0))*((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))))/((((x[0]*x[1])*exp((t/20.0)))-(x[0]*x[1]))+1.0))"), t=dt, mu=mu, lm=lm, k=k)
+    u_initial = Expression(("0.0","0.0","0.0"), lm=lm, mu=mu, k=k)
+    p_initial = Expression("0.0", t=dt, k=k)
+
+
 
 
     # u_e = Expression(("((x[0]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))-x[0])","((x[1]*pow((-1.0/((pow((t-20.0),2.0)/400.0)-2.0)),(1.0/2.0)))-x[1])","((-x[2])-(x[2]*((pow((t-20.0),2.0)/400.0)-2.0)))"), t=dt)
@@ -90,7 +96,7 @@ def manufactured_solutiond(dt, k, mu, lm):
     tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front]
     gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front]
 
-    return [u_e, p_e, v_e, source, body_force, tbars, gbars]
+    return [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial]
 
 
 def vic_sim( m_num, p_order, dt, T_total, max_it, \
@@ -107,7 +113,7 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Exact solutions
-    [u_e, p_e, v_e, source, body_force, tbars, gbars] \
+    [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial] \
         = manufactured_solutiond(dt, perm, mu, lmbda)
 
     
@@ -147,19 +153,20 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
         bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
         = dirichlet_boundaries(bd_tol, V, dt, u_e, p_e)
 
-    bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+    # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+    #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+
+    bcs = [bc_ubottom,\
            bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
-    # bcs = [bc_ubottom, bc_pbottom]
+
 
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
-    # bcs = [bc_ubottom, 
-    # bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
     u_1, p_1 = split(up_1)       # Function in each subspace to write the functional
-    assign (up_1.sub(0), interpolate(Constant((0.0, 0.0, 0.0)),Pu))
-    assign (up_1.sub(1), interpolate(Constant(0),Pp))
+    assign (up_1.sub(0), interpolate(u_initial,Pu))
+    assign (up_1.sub(1), interpolate(p_initial,Pp))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -244,19 +251,16 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        - (source*q*J)*dx \
+        - (source*q)*dx \
         + (inner(body_force,w))*dx \
-        # - (inner(tbar_top,w))*ds_neumann(0) \
-        # - (inner(tbar_right,w))*ds_neumann(2) \
-        # - (inner(tbar_left,w))*ds_neumann(3) \
-        # - (inner(tbar_back,w))*ds_neumann(4) \
-        # - (inner(tbar_front,w))*ds_neumann(5) \
+        - (inner(tbar_top,w))*ds_neumann(0) \
+        - (inner(tbar_right,w))*ds_neumann(2) \
+        - (inner(tbar_left,w))*ds_neumann(3) \
+        - (inner(tbar_back,w))*ds_neumann(4) \
+        - (inner(tbar_front,w))*ds_neumann(5) \
         # + (inner(gbar_top,q))*ds_neumann(0)\
         # + (inner(gbar_right,q))*ds_neumann(2) \
-        # + (inner(gbar_left,q))*ds_neumann(3) \
         # + (inner(gbar_back,q))*ds_neumann(4) \
-        # + (inner(gbar_front,q))*ds_neumann(5) \
-
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -351,11 +355,12 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
             bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
             = dirichlet_boundaries(bd_tol, V, t+dt, u_e, p_e)
 
-        bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-               bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
-        # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
-        # bcs = [bc_ubottom, bc_pbottom]
+        # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+        #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+
+        bcs = [bc_ubottom,\
+               bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)

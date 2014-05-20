@@ -119,3 +119,27 @@ for tb in tbars:
     tbars_c.append(k)
     print "tbar_" + directions[j] + "= Expression((\"" + k[0] + "\",\n\"" + k[1] + "\",\n\"" + k[2] + "\"), t=dt, mu=mu, lm=lm, k=k)"
     j+=1
+
+#### initial conditions #### 
+
+for i in range(3):
+    u_initial[i] = u_initial[i].translate(None, " ")
+    u_initial[i] = re.sub('\^', '**', u_initial[i])
+    u_initial[i] = str(rec(ast.parse(u_initial[i]).body[0]) )
+    u_initial[i] = re.sub('X0', 'x[0]', u_initial[i])
+    u_initial[i] = re.sub('Y0', 'x[1]', u_initial[i])
+    u_initial[i] = re.sub('Z0', 'x[2]', u_initial[i])
+    u_initial[i] = u_initial[i].translate(None, " ")
+
+print "u_initial = Expression((\"" + u_initial[0] + "\"," + "\"" + u_initial[1] + "\"," +\
+    "\"" + u_initial[2] + "\"" + "), lm=lm, mu=mu, k=k)"
+
+p_initial = p_initial.translate(None, " ")
+p_initial = re.sub('\^', '**', p_initial)
+p_initial = str(rec(ast.parse(p_initial).body[0]) )
+p_initial = re.sub('X0', 'x[0]', p_initial)
+p_initial = re.sub('Y0', 'x[1]', p_initial)
+p_initial = re.sub('Z0', 'x[2]', p_initial)
+p_initial = p_initial.translate(None, " ")
+
+print "p_initial = Expression(\"" + p_initial + "\", t=dt, k=k)"

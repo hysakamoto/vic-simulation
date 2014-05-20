@@ -13,9 +13,12 @@ K = eye(3)*k;
 
 X = x;
 Y = y;
-Z = z/(x*y*(exp(t/20)-1)+1);
-p = x*y*z*(exp(t/20)-1);
-% p=0;
+% Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
+% Z = z/(x*y*(exp(t/20)-1)+1);
+Z = z/(X*Y*(exp(t/20) - 1) + 1);
+% Z = z - X*Y*(exp(t/20) - 1); %% working fine
+% p = x*y*z*(exp(t/20)-1);
+p=0;
 
 % X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
 % Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
@@ -59,6 +62,7 @@ bf(3) = diff(Sigma(3,3),z);
 bf = bf.'*J;
 
 %% Boundary conditions: Neumann
+% assuming that normal direction does not change (second n0 should be n)
 n_top = [0;0;1];
 n_bottom = n_top*-1;
 n_right = [1;0;0];
@@ -66,9 +70,15 @@ n_left = n_right*-1;
 n_back = [0;1;0];
 n_front = n_back*-1;
 
-dsdS = @(n) (J*sqrt((n.'*invF)*(invF.'*n)));
-gbar = @(n) (-K*gradient(p,[x,y,z])).'*n * dsdS(n);
-tbar = @(n) (-p*n+Sigma_E*n) * dsdS(n);
+dsdS = @(n0) (J*sqrt((n0.'*invF)*(invF.'*n0)));
+% n_cur = @(n0) (F*n0)/norm(F*n0);
+n_cur = @(n0) n0;
+gbar = @(n0) (-K*gradient(p,[x,y,z])).'*n_cur(n0) * dsdS(n0);
+tbar = @(n0) (-p*I+Sigma_E)*n_cur(n0) * dsdS(n0); % use current normal 
+
+tbar = @(n0) (J*invF*(-p*I+Sigma_E)*invF.')*n0;
+
+tbar = @(n0) (-p*I+Sigma_E)* (J*invF.'*n0);
 
 gbar_top = gbar(n_top);
 gbar_bottom = gbar(n_bottom);
@@ -89,7 +99,7 @@ tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front];
 
 %% initial condition
 
-u_initial = subs(u,t,0);
+u_initial = limit(u,t,0);
 p_initial = subs(p,t,0);
 
 
@@ -101,9 +111,9 @@ A=solve(strcat(char(X), ' == X'), ...
     strcat(char(Y), ' == Y'),...
     strcat(char(Z), ' == Z'),...
     'x','y','z');
-x_char = char(A.x);
-y_char = char(A.y);
-z_char = char(A.z);
+x_char = char(A.x(1));
+y_char = char(A.y(1));
+z_char = char(A.z(1));
 x_char = strrep(strrep(strrep(x_char, 'X', 'X0'), 'Y','Y0'), 'Z', 'Z0');
 y_char = strrep(strrep(strrep(y_char, 'X', 'X0'), 'Y','Y0'), 'Z', 'Z0');
 z_char = strrep(strrep(strrep(z_char, 'X', 'X0'), 'Y','Y0'), 'Z', 'Z0');
@@ -116,11 +126,11 @@ u_ = subs(u, [x,y,z], [x_,y_,z_]);
 p_ = subs(p, [x,y,z], [x_,y_,z_]);
 v_ = subs(v, [x,y,z], [x_,y_,z_]);
 
-source_ = subs(source, [x,y,z], [x_,y_,z_]);
+source_ = subs(source*J, [x,y,z], [x_,y_,z_]);
 bf_ = subs(bf, [x,y,z], [x_,y_,z_]);
 
-u_initial_ = subs(u_initial, [x,y,z], [x_,y_,z_]);
-p_initial_ = subs(p_initial, [x,y,z], [x_,y_,z_]);
+u_initial_ = subs(subs(u_initial, [x,y,z], [x_,y_,z_]),t,0);
+p_initial_ = subs(subs(p_initial, [x,y,z], [x_,y_,z_]),t,0);
 
 gbars_ = subs(gbars, [x,y,z], [x_,y_,z_]);
 tbars_ = subs(tbars, [x,y,z], [x_,y_,z_]);
