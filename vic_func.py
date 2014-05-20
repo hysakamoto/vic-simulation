@@ -26,7 +26,8 @@ ffc_options = {"optimize": True, \
                "precompute_ip_const": True}
 
 
-def vic_sim( m_num, p_order, dt, T_total, max_it, \
+def vic_sim( sim_name, \
+             m_num, p_order, dt, T_total, max_it, \
              omega, Ee, nu, gamma, tau, perm, \
              top_trac, body_force ):
     """ 
@@ -84,7 +85,7 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
     #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
     bcs = [bc_ubottom,\
-           bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+           bc_pbottom, bc_pleft, bc_pfront]
 
 
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
@@ -185,9 +186,9 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
         - (inner(tbar_left,w))*ds_neumann(3) \
         - (inner(tbar_back,w))*ds_neumann(4) \
         - (inner(tbar_front,w))*ds_neumann(5) \
-        # + (inner(gbar_top,q))*ds_neumann(0)\
-        # + (inner(gbar_right,q))*ds_neumann(2) \
-        # + (inner(gbar_back,q))*ds_neumann(4) \
+        + (inner(gbar_top,q))*ds_neumann(0)\
+        + (inner(gbar_right,q))*ds_neumann(2) \
+        + (inner(gbar_back,q))*ds_neumann(4) \
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -208,8 +209,8 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
-    dfile = File("results/displacement.pvd");
-    pfile = File("results/pressure.pvd");
+    dfile = File(sim_name + "/displacement.pvd");
+    pfile = File(sim_name + "/pressure.pvd");
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
 
@@ -287,7 +288,7 @@ def vic_sim( m_num, p_order, dt, T_total, max_it, \
         #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
         bcs = [bc_ubottom,\
-               bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+               bc_pbottom, bc_pleft, bc_pfront]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)

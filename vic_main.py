@@ -16,12 +16,12 @@ execfile("conveq.py")
 
 
 # Begin simulation
-m_num   = 4
+m_num   = 8
 p_order = 1
 T_total = 20.0
 dt      = 0.5    # time step
 max_it  = 20
-omega   = 1.0    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
+omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
 Ee      = 100.0
@@ -32,55 +32,70 @@ body_force = (0.0,0.0,0.0)
 
 max_its = [2,4,8,16,32]
 dts = [T_total/mit for mit in max_its]
+
+T_total = 10.0
+dt      = 1    # time step
+max_it  = int(T_total/dt)
+
+
 errors_u = []
 errors_p = []
 u_maxmax = []
 
-# for i in range(len(dts)):
-#     dt = dts[i]
-#     max_it = max_its[i]
+# sim_name = 'result/'
+# u_max, Eus, Eps = vic_func.vic_sim( sim_name, 
+#                                     m_num, p_order, dt, T_total, max_it, omega,
+#                                     Ee, nu, gamma, tau, perm,
+#                                     top_trac, body_force )
 
-#     u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
+# m_nums = [1,2,4,8,16]
+# sim_basename = 'mesh/'
+# for i in range(len(m_nums)):
+#     m_num = m_nums[i]
+#     sim_name = sim_basename + str(m_num)
+#     u_max, Eus, Eps = vic_func.vic_sim( sim_name, 
+#                                         m_num, p_order, dt, T_total, max_it, omega,
 #                                         Ee, nu, gamma, tau, perm,
 #                                         top_trac, body_force )
 #     errors_u.append(sum(Eus)*dt)
 #     errors_p.append(sum(Eps)*dt)
 #     u_maxmax.append(max(u_max))
 
-T_total = 10.0
-dt      = 1    # time step
-max_it  = int(T_total/dt)
 
-m_nums = [1,2,4,8,16]
-m_nums = [4]
-for i in range(len(m_nums)):
-    m_num = m_nums[i]
-    u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
+T_total = 10.0
+max_its = [1,2,4,8,16,32,64]
+m_num = 8
+sim_basename = 'time_cn/'
+for i in range(len(max_its)):
+    max_it = max_its[i]
+    dt = T_total/float(max_it)
+    sim_name = sim_basename + str(max_it)
+    u_max, Eus, Eps = vic_func.vic_sim( sim_name,
+                                        m_num, p_order, dt, T_total, max_it, omega,
                                         Ee, nu, gamma, tau, perm,
                                         top_trac, body_force )
     errors_u.append(sum(Eus)*dt)
     errors_p.append(sum(Eps)*dt)
     u_maxmax.append(max(u_max))
 
-
 print errors_u
 print errors_p
-print u_maxmax
+# print u_maxmax
 
-# plt.loglog(m_nums, errors_u,'-o'); 
-# plt.show()
+plt.loglog(max_its, errors_u,'-o'); 
+plt.show()
+
+print 'u-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
+print 'p-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
 
 
-# T_total = 6.0
-# max_its = [4,8,16,32,64]
-# m_num = 8
-# for i in range(len(max_its)):
-#     max_it = max_its[i]
-#     dt = T_total/float(max_it)
-#     u_max, Eus, Eps = vic_func.vic_sim( m_num, p_order, dt, T_total, max_it, omega,
-#                                         Ee, nu, gamma, tau, perm,
-#                                         top_trac, body_force )
-#     errors_u.append(sum(Eus)*dt)
-#     errors_p.append(sum(Eps)*dt)
-#     u_maxmax.append(max(u_max))
+## Output convergence result
+with open(sim_basename+'conv.txt', 'w') as f:
+    f.write(str(errors_u))
+    f.write(str(errors_p))
+
+    f.write('u-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+    f.write('p-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+
+
 

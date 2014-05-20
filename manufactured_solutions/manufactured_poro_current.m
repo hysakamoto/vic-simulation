@@ -13,11 +13,11 @@ K = eye(3)*k;
 
 X = x;
 Y = y;
-Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
-% Z = z/(x*y*(exp(t/20)-1)+1);
+% Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
+Z = z/(x*y*(exp(t/20)-1)+1);
 % Z = z - X*Y*(exp(t/20) - 1); %% working fine
-% p = x*y*z*(exp(t/20)-1);
-p=0;
+p = x*y*z*(exp(t/20)-1);
+% p=0;
 % 
 % X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
 % Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
@@ -70,16 +70,16 @@ n_back = [0;1;0];
 n_front = n_back*-1;
 
 %% using area change
-% dsdS = @(n0) (J*sqrt((n0.'*invF)*(invF.'*n0)));
-% n_cur = @(n0) (F*n0)/norm(F*n0);
-% % n_cur = @(n0) n0;
-% gbar = @(n0) (-K*gradient(p,[x,y,z])).'*n_cur(n0) * dsdS(n0);
-% tbar = @(n0) (-p*I+Sigma_E)*n_cur(n0) * dsdS(n0); % use current normal 
+dsdS = @(n0) (J*sqrt((n0.'*invF)*(invF.'*n0)));
+n_cur = @(n0) (F*n0)/norm(F*n0);
+% n_cur = @(n0) n0;
+gbar = @(n0) (-K*gradient(p,[x,y,z])).'*n_cur(n0) * dsdS(n0);
+tbar = @(n0) (-p*I+Sigma_E)*n_cur(n0) * dsdS(n0); % use current normal 
 %%
 
 %% using wood
-gbar = @(n0) (-K*gradient(p,[x,y,z])).'* (J*invF.'*n0);
-tbar = @(n0) (-p*I+Sigma_E)* (J*invF.'*n0);
+% gbar = @(n0) (-K*gradient(p,[x,y,z])).'* (J*invF.'*n0);
+% tbar = @(n0) (-p*I+Sigma_E)* (J*invF.'*n0);
 %% http://en.wikipedia.org/wiki/Stress_measures
 
 
