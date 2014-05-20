@@ -24,3 +24,10 @@
 4. Integrate it over the (initial) domain.
 5. Repeat it for every time step.
 6. Integrate the error over time.
+
+### TODO
+
+1. Check the nonlinear boundary conditions. - read Wood
+2. Implement the nonlinear boundary conditions.
+3. Convergence analysis.
+4. Time- and mesh- convergence.
