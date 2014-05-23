@@ -216,10 +216,21 @@ def vic_sim( sim_name, \
 
     # dup   = Function(V)
 
+    ### Function spaces to calculate error
+    ## Create mesh and define function space
+    mesh_e = UnitCubeMesh(16,16,16)
+
+    ##  Function Spaces
+    Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
+    Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
+    V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
+
     ### Run Simulation
     u_max = []
     Eus = []
     Eps = []
+    Eus2 = []
+    Eps2 = []
     while tn<max_it:
         print 'time = ', (t+dt)
 
@@ -239,17 +250,41 @@ def vic_sim( sim_name, \
         #     as_tmp = 0.0
         Ep = sqrt(as_tmp)
 
-        # Explicit interpolation of u_e onto the same space as u:
-        # u_e_V = interpolate(u_e, V)
-        # error_u = (u - u_e_V)**2*dx
-        # E2 = sqrt(assemble(error_u))
-        # Eu_4 = errornorm(u_e, u, normtype='l2', degree=3)
-
         Eus.append(Eu)
         Eps.append(Ep)
 
+
         # pdb.set_trace()
         u_tent, p_tent = up.split(deepcopy=True) 
+
+        # def errornorm(u_e, u, Ve):
+        #     u_e_Ve = interpolate(u_e, Ve)
+        #     u_Ve = interpolate(u, Ve)
+        #     e_Ve = Function(Ve)
+        #     # Subtract degrees of freedom for the error field
+        #     e_Ve.vector()[:] = u_e_Ve.vector().array() - u_Ve.vector().array()
+        #     # More efficient computation (avoids the rhs array result above)
+        #     #e_Ve.assign(u_e_Ve)                      # e_Ve = u_e_Ve
+        #     #e_Ve.vector().axpy(-1.0, u_Ve.vector())  # e_Ve += -1.0*u_Ve
+        #     error = e_Ve**2*dx
+        #     return sqrt(assemble(error, mesh=Ve.mesh())), e_Ve
+        # E4, e_Ve = errornorm(u_e, u_tent, Pu_e)
+
+
+        # Explicit interpolation of u_e onto the same space as u:
+        u_intp = interpolate(u_tent, Pu_e)
+        u_e_intp = interpolate(u_e, Pu_e)
+        error_u_intp = (u_intp - u_e_intp)**2*dx
+        Eu2 = sqrt(assemble(error_u_intp))
+
+        p_intp = interpolate(p_tent, Pp_e)
+        p_e_intp = interpolate(p_e, Pp_e)
+        error_p_intp = (p_intp - p_e_intp)**2*dx
+        Ep2 = sqrt(assemble(error_p_intp))
+
+        Eus2.append(Eu2)
+        Eps2.append(Ep2)
+        
 
         u_max.append( np.max(u_tent.vector().array()))
 
@@ -309,7 +344,7 @@ def vic_sim( sim_name, \
 
         
 
-    return u_max, Eus, Eps
+    return u_max, Eus, Eps, Eus2, Eps2
 
     # Plot and hold solution
     # plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)

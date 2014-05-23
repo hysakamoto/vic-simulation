@@ -6,9 +6,13 @@ from dolfin import *
 from vic_func import *
 import pdb
 import matplotlib.pyplot as plt
+import time
 
 import vic_func
 reload(vic_func)
+
+## starting time
+time_start = time.time()
 
 ## Generate the manufactured solutions, bcs, ics
 print "Generating manufactured solutions from MATLAB output..."
@@ -41,6 +45,8 @@ max_it  = int(T_total/dt)
 errors_u = []
 errors_p = []
 u_maxmax = []
+errors_u2 = []
+errors_p2 = []
 
 # sim_name = 'result/'
 # u_max, Eus, Eps = vic_func.vic_sim( sim_name, 
@@ -49,19 +55,21 @@ u_maxmax = []
 #                                     top_trac, body_force )
 
 m_nums = [1,2,4,8,16]
-m_nums= [1]
+m_nums = [1,2]
 sim_basename = 'mesh/'
 for i in range(len(m_nums)):
     m_num = m_nums[i]
     sim_name = sim_basename + str(m_num)
-    u_max, Eus, Eps = vic_func.vic_sim( sim_name, 
-                                        m_num, p_order, dt, T_total, max_it, omega,
-                                        Ee, nu, gamma, tau, perm,
-                                        top_trac, body_force )
+    u_max, Eus, Eps, Eus2, Eps2  \
+        = vic_func.vic_sim( sim_name, 
+                            m_num, p_order, dt, T_total, max_it, omega,
+                            Ee, nu, gamma, tau, perm,
+                            top_trac, body_force )
     errors_u.append(sum(Eus)*dt)
     errors_p.append(sum(Eps)*dt)
     u_maxmax.append(max(u_max))
-
+    errors_u2.append(sum(Eus2)*dt)
+    errors_p2.append(sum(Eps2)*dt)
 
 # T_total = 10.0
 # max_its = [1,2,4,8,16,32,64]
@@ -83,12 +91,14 @@ print errors_u
 print errors_p
 # print u_maxmax
 
-plt.loglog(max_its, errors_u,'-o'); 
-plt.show()
+# plt.loglog(max_its, errors_u,'-o'); 
+# plt.show()
 
 print 'u-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
 print 'p-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
 
+## ending time
+time_end = time.time()
 
 ## Output convergence result
 with open(sim_basename+'conv.txt', 'w') as f:
@@ -98,5 +108,8 @@ with open(sim_basename+'conv.txt', 'w') as f:
     f.write('\nu-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
     f.write('\np-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
 
+    f.write('\nelapsed time: ' + str(time_start-time_end))
 
 
+print('\nu-convergence rate: '+ str((np.log(errors_u2[0])-np.log(errors_u2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+print('\np-convergence rate: '+ str((np.log(errors_p2[0])-np.log(errors_p2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))

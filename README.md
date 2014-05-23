@@ -25,6 +25,7 @@
 5. Repeat it for every time step.
 6. Integrate the error over time.
 7. **The integration over space need to be done on the fine mesh!!!**
+8. **The integration over time need to be done on the smallest time step!!!**
 
 
 ### TODO
