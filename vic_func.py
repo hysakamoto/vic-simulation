@@ -19,7 +19,7 @@ reload(manufactured_solutions)
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
-parameters["num_threads"] = 2
+parameters["num_threads"] = 4
 ffc_options = {"optimize": True, \
                "eliminate_zeros": True, \
                "precompute_basis_const": True, \

@@ -55,7 +55,6 @@ errors_p2 = []
 #                                     top_trac, body_force )
 
 m_nums = [1,2,4,8,16]
-m_nums = [1,2]
 sim_basename = 'mesh/'
 for i in range(len(m_nums)):
     m_num = m_nums[i]
@@ -87,15 +86,12 @@ for i in range(len(m_nums)):
 #     errors_p.append(sum(Eps)*dt)
 #     u_maxmax.append(max(u_max))
 
-print errors_u
-print errors_p
-# print u_maxmax
+# print '\nu-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
+# print '\np-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
 
-# plt.loglog(max_its, errors_u,'-o'); 
-# plt.show()
+# print('\nu-convergence rate: '+ str((np.log(errors_u2[0])-np.log(errors_u2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+# print('\np-convergence rate: '+ str((np.log(errors_p2[0])-np.log(errors_p2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
 
-print 'u-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
-print 'p-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1])))
 
 ## ending time
 time_end = time.time()
@@ -103,13 +99,22 @@ time_end = time.time()
 ## Output convergence result
 with open(sim_basename+'conv.txt', 'w') as f:
     f.write(str(errors_u))
+    f.write('\n')
     f.write(str(errors_p))
+    f.write('\n')
+    f.write(str(errors_u2))
+    f.write('\n')
+    f.write(str(errors_p2))
 
-    f.write('\nu-convergence rate: '+ str((np.log(errors_u[0])-np.log(errors_u[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
-    f.write('\np-convergence rate: '+ str((np.log(errors_p[0])-np.log(errors_p[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+    f.write('\nu-convergence rate: '+ str((np.log(errors_u2[0])-np.log(errors_u2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+    f.write('\np-convergence rate: '+ str((np.log(errors_p2[0])-np.log(errors_p2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
 
-    f.write('\nelapsed time: ' + str(time_start-time_end))
+    f.write('\nelapsed time: ' + str(time_end-time_start))
 
 
-print('\nu-convergence rate: '+ str((np.log(errors_u2[0])-np.log(errors_u2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
-print('\np-convergence rate: '+ str((np.log(errors_p2[0])-np.log(errors_p2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))))
+## plotting
+# plt.loglog(max_its, errors_u,'-o'); 
+# plt.show()
+
+
+
