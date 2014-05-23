@@ -11,7 +11,7 @@ import newton_solve
 from vic_bcs import *
 
 import manufactured_solutions
-reload(manufactured_solutions)
+# reload(manufactured_solutions)
 
 # DEBUG
 # set_log_level(DEBUG) #PROGRESS
@@ -19,7 +19,7 @@ reload(manufactured_solutions)
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
-parameters["num_threads"] = 4
+parameters["num_threads"] = 16
 ffc_options = {"optimize": True, \
                "eliminate_zeros": True, \
                "precompute_basis_const": True, \
@@ -29,7 +29,8 @@ ffc_options = {"optimize": True, \
 def vic_sim( sim_name, \
              m_num, p_order, dt, T_total, max_it, \
              omega, Ee, nu, gamma, tau, perm, \
-             top_trac, body_force ):
+             top_trac, body_force,
+             n_err_comp):
     """ 
     run the VIC simulation
     """
@@ -85,8 +86,7 @@ def vic_sim( sim_name, \
     #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
     bcs = [bc_ubottom, bc_uleft, bc_ufront, \
-           bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
-
+           bc_pbottom, bc_pleft, bc_pfront]
 
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
@@ -184,11 +184,12 @@ def vic_sim( sim_name, \
         - (inner(tbar_top,w))*ds_neumann(0) \
         - (inner(tbar_right,w))*ds_neumann(2) \
         - (inner(tbar_back,w))*ds_neumann(4) \
+        + (inner(gbar_top,q))*ds_neumann(0)\
+        + (inner(gbar_right,q))*ds_neumann(2) \
+        + (inner(gbar_back,q))*ds_neumann(4) \
+
         # - (inner(tbar_left,w))*ds_neumann(3) \
         # - (inner(tbar_front,w))*ds_neumann(5) \
-        # + (inner(gbar_top,q))*ds_neumann(0)\
-        # + (inner(gbar_right,q))*ds_neumann(2) \
-        # + (inner(gbar_back,q))*ds_neumann(4) \
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -237,56 +238,56 @@ def vic_sim( sim_name, \
         # solve
         solver.solve()
 
-        ### Error against exact solutions
-        error_u = (u-u_e)**2*dx
-        as_tmp = assemble(error_u)
-        # if as_tmp < 0.0:
-        #     as_tmp = 0.0
-        Eu = sqrt(as_tmp)
+        Eu = 0
+        Ep = 0
+        tes = np.linspace(t, t+dt, n_err_comp)
+        for i in range(len(tes)): 
+            if i>0: # skip first one
+                pdb.set_trace()
 
-        error_p = (p-p_e)**2*dx
-        as_tmp = assemble(error_p)
-        # if as_tmp < 0.0:
-        #     as_tmp = 0.0
-        Ep = sqrt(as_tmp)
+                eu, ep = time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t, t+dt, tes[i])
+                Eu += eu*(tes[i]-tes[i-1])
+                Ep += ep*(tes[i]-tes[i-1])
 
         Eus.append(Eu)
         Eps.append(Ep)
 
 
-        # pdb.set_trace()
-        u_tent, p_tent = up.split(deepcopy=True) 
+        # ### Error against exact solutions
+        # error_u = (u-u_e)**2*dx
+        # as_tmp = assemble(error_u)
+        # # if as_tmp < 0.0:
+        # #     as_tmp = 0.0
+        # Eu = sqrt(as_tmp)
 
-        # def errornorm(u_e, u, Ve):
-        #     u_e_Ve = interpolate(u_e, Ve)
-        #     u_Ve = interpolate(u, Ve)
-        #     e_Ve = Function(Ve)
-        #     # Subtract degrees of freedom for the error field
-        #     e_Ve.vector()[:] = u_e_Ve.vector().array() - u_Ve.vector().array()
-        #     # More efficient computation (avoids the rhs array result above)
-        #     #e_Ve.assign(u_e_Ve)                      # e_Ve = u_e_Ve
-        #     #e_Ve.vector().axpy(-1.0, u_Ve.vector())  # e_Ve += -1.0*u_Ve
-        #     error = e_Ve**2*dx
-        #     return sqrt(assemble(error, mesh=Ve.mesh())), e_Ve
-        # E4, e_Ve = errornorm(u_e, u_tent, Pu_e)
+        # error_p = (p-p_e)**2*dx
+        # as_tmp = assemble(error_p)
+        # # if as_tmp < 0.0:
+        # #     as_tmp = 0.0
+        # Ep = sqrt(as_tmp)
 
+        # Eus.append(Eu)
+        # Eps.append(Ep)
 
-        # Explicit interpolation of u_e onto the same space as u:
-        u_intp = interpolate(u_tent, Pu_e)
-        u_e_intp = interpolate(u_e, Pu_e)
-        error_u_intp = (u_intp - u_e_intp)**2*dx
-        Eu2 = sqrt(assemble(error_u_intp))
+        # # pdb.set_trace()
+        # u_tent, p_tent = up.split(deepcopy=True) 
 
-        p_intp = interpolate(p_tent, Pp_e)
-        p_e_intp = interpolate(p_e, Pp_e)
-        error_p_intp = (p_intp - p_e_intp)**2*dx
-        Ep2 = sqrt(assemble(error_p_intp))
+        # # Explicit interpolation of u_e onto the same space as u:
+        # u_intp = interpolate(u_tent, Pu_e)
+        # u_e_intp = interpolate(u_e, Pu_e)
+        # error_u_intp = (u_intp - u_e_intp)**2*dx
+        # Eu2 = sqrt(assemble(error_u_intp))
 
-        Eus2.append(Eu2)
-        Eps2.append(Ep2)
+        # p_intp = interpolate(p_tent, Pp_e)
+        # p_e_intp = interpolate(p_e, Pp_e)
+        # error_p_intp = (p_intp - p_e_intp)**2*dx
+        # Ep2 = sqrt(assemble(error_p_intp))
+
+        # Eus2.append(Eu2)
+        # Eps2.append(Ep2)
         
 
-        u_max.append( np.max(u_tent.vector().array()))
+        # u_max.append( np.max(u_tent.vector().array()))
 
         # update
         t    += dt
@@ -323,7 +324,7 @@ def vic_sim( sim_name, \
         #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
         bcs = [bc_ubottom, bc_uleft, bc_ufront, \
-               bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
+               bc_pbottom, bc_pleft, bc_pfront]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
@@ -349,3 +350,35 @@ def vic_sim( sim_name, \
     # Plot and hold solution
     # plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
     # plot(p, title  = "pressure", axes=True, interactive = True)
+
+
+
+
+
+def time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t1, t2, t):
+    u2_tent, p2_tent = up.split(deepcopy=True) 
+    u1_tent, p1_tent = up_1.split(deepcopy=True)
+
+    u2 = interpolate(u2_tent, Pu_e)
+    u1 = interpolate(u1_tent, Pu_e)
+    p2 = interpolate(p2_tent, Pp_e)
+    p1 = interpolate(p1_tent, Pp_e)
+
+    uh = u1+ (u2-u1)/(t2-t1)*(t-t1)
+    ph = p1+ (p2-p1)/(t2-t1)*(t-t1)
+    
+    # update u_e, p_e
+    u_e.t = t
+    p_e.t = t
+
+    u_e_intp = interpolate(u_e, Pu_e)
+    p_e_intp = interpolate(p_e, Pp_e)
+
+    eu_local = (u_e_intp-uh)**2*dx
+    Eu = sqrt(assemble(eu_local))
+
+    ep_local = (p_e_intp-ph)**2*dx
+    Ep = sqrt(assemble(ep_local))
+
+    return Eu, Ep
+    
