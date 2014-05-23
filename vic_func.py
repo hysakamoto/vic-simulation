@@ -84,8 +84,8 @@ def vic_sim( sim_name, \
     # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
     #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
-    bcs = [bc_ubottom,\
-           bc_pbottom, bc_pleft, bc_pfront]
+    bcs = [bc_ubottom, bc_uleft, bc_ufront, \
+           bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
 
 
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
@@ -180,15 +180,15 @@ def vic_sim( sim_name, \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         - (source*q)*dx \
-        + (inner(body_force,w))*dx \
+        + (inner(body_force,w)*J)*dx \
         - (inner(tbar_top,w))*ds_neumann(0) \
         - (inner(tbar_right,w))*ds_neumann(2) \
-        - (inner(tbar_left,w))*ds_neumann(3) \
         - (inner(tbar_back,w))*ds_neumann(4) \
-        - (inner(tbar_front,w))*ds_neumann(5) \
-        + (inner(gbar_top,q))*ds_neumann(0)\
-        + (inner(gbar_right,q))*ds_neumann(2) \
-        + (inner(gbar_back,q))*ds_neumann(4) \
+        # - (inner(tbar_left,w))*ds_neumann(3) \
+        # - (inner(tbar_front,w))*ds_neumann(5) \
+        # + (inner(gbar_top,q))*ds_neumann(0)\
+        # + (inner(gbar_right,q))*ds_neumann(2) \
+        # + (inner(gbar_back,q))*ds_neumann(4) \
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -229,14 +229,14 @@ def vic_sim( sim_name, \
         ### Error against exact solutions
         error_u = (u-u_e)**2*dx
         as_tmp = assemble(error_u)
-        if as_tmp < 0.0:
-            as_tmp = 0.0
+        # if as_tmp < 0.0:
+        #     as_tmp = 0.0
         Eu = sqrt(as_tmp)
 
         error_p = (p-p_e)**2*dx
         as_tmp = assemble(error_p)
-        if as_tmp < 0.0:
-            as_tmp = 0.0
+        # if as_tmp < 0.0:
+        #     as_tmp = 0.0
         Ep = sqrt(as_tmp)
 
         # Explicit interpolation of u_e onto the same space as u:
@@ -287,8 +287,8 @@ def vic_sim( sim_name, \
         # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
         #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
-        bcs = [bc_ubottom,\
-               bc_pbottom, bc_pleft, bc_pfront]
+        bcs = [bc_ubottom, bc_uleft, bc_ufront, \
+               bc_pbottom, bc_ptop, bc_pleft, bc_pright, bc_pfront, bc_pback]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
@@ -296,7 +296,7 @@ def vic_sim( sim_name, \
 
         v_1  = project(v,Pu)
         up_1.assign(up)
-        assign(up_1.sub(0),up.sub(0))
+        # assign(up_1.sub(0),up.sub(0))
         H_1 = project(H, HS)
         S_1 = project(S, HS)
 
