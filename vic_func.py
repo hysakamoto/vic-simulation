@@ -243,8 +243,6 @@ def vic_sim( sim_name, \
         tes = np.linspace(t, t+dt, n_err_comp)
         for i in range(len(tes)): 
             if i>0: # skip first one
-                pdb.set_trace()
-
                 eu, ep = time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t, t+dt, tes[i])
                 Eu += eu*(tes[i]-tes[i-1])
                 Ep += ep*(tes[i]-tes[i-1])
