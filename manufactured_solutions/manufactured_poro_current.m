@@ -16,8 +16,10 @@ Y = y;
 Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
 % Z = z/(x*y*(exp(t/20)-1)+1);
 % Z = z - X*Y*(exp(t/20) - 1); %% working fine
-% p = x*y*z*(exp(t/20)-1);
-p=0;
+p = x*y*z*(exp(t/20)-1);
+
+p = x*y*z*(sin(t/10*pi));
+
 % 
 % X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
 % Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);
@@ -138,7 +140,7 @@ u_ = subs(u, [x,y,z], [x_,y_,z_]);
 p_ = subs(p, [x,y,z], [x_,y_,z_]);
 v_ = subs(v, [x,y,z], [x_,y_,z_]);
 
-source_ = subs(source*J, [x,y,z], [x_,y_,z_]);
+source_ = subs(source, [x,y,z], [x_,y_,z_]);
 bf_ = subs(bf, [x,y,z], [x_,y_,z_]);
 
 u_initial_ = subs(subs(u_initial, [x,y,z], [x_,y_,z_]),t,0);

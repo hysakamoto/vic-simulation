@@ -87,13 +87,14 @@ def vic_sim( sim_name, \
     #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
     bcs = [bc_ubottom, bc_uleft, bc_ufront, \
-           bc_pbottom, bc_pleft, bc_pfront]
+           bc_pbottom, bc_pleft, bc_pfront]#, bc_ptop, bc_pright, bc_pback]
 
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
     u_1, p_1 = split(up_1)       # Function in each subspace to write the functional
+    up_1.vector().array()
     assign (up_1.sub(0), interpolate(u_initial,Pu))
     assign (up_1.sub(1), interpolate(p_initial,Pp))
 
@@ -180,7 +181,7 @@ def vic_sim( sim_name, \
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        - (source*q)*dx \
+        - (J*source*q)*dx \
         + (inner(body_force,w)*J)*dx \
         - (inner(tbar_top,w))*ds_neumann(0) \
         - (inner(tbar_right,w))*ds_neumann(2) \
@@ -215,6 +216,8 @@ def vic_sim( sim_name, \
     pfile = File(sim_name + "/pressure.pvd");
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
+    # Save solutions in xml format
+    File(sim_name+ '/up_%d.xml' %0) << up
 
     # dup   = Function(V)
 
@@ -326,7 +329,9 @@ def vic_sim( sim_name, \
         #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
         bcs = [bc_ubottom, bc_uleft, bc_ufront, \
-               bc_pbottom, bc_pleft, bc_pfront]
+               bc_pbottom, bc_pleft, bc_pfront]#, bc_ptop, bc_pright, bc_pback]
+
+
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
