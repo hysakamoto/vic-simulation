@@ -227,6 +227,9 @@ def vic_sim( sim_name, \
     Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
     V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
 
+    # Save mesh
+    File(sim_name+'/mesh.xdmf') << mesh
+
     ### Run Simulation
     u_max = []
     Eus = []
@@ -338,25 +341,13 @@ def vic_sim( sim_name, \
         # Save solution in VTK format
         dfile << (up.sub(0), t);
         pfile << (up.sub(1), t);
+        # Save solutions in xml format
+        File(sim_name+ '/up_%d.xml' %tn) << up
 
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
-        # Save solutions in MATLAB format using scipy.io
-        uvec = [up.sub(0).sub(0,deepcopy=True).vector().array(), 
-                up.sub(0).sub(1,deepcopy=True).vector().array(), 
-                up.sub(0).sub(2,deepcopy=True).vector().array()]
-        pvec = up.sub(1,deepcopy=True).vector().array()
-        scipy.io.savemat(sim_name + '/u_%d' %tn, { 'u': uvec })
-        scipy.io.savemat(sim_name + '/p_%d' %tn, { 'p': pvec })
-
 
     return u_max, Eus, Eps, Eus2, Eps2
-
-    # Plot and hold solution
-    # plot(u, mode = "displacement", title="displacement", axes=True, interactive = True)
-    # plot(p, title  = "pressure", axes=True, interactive = True)
-
-
 
 
 
@@ -387,3 +378,12 @@ def time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t1, t2, t):
 
     return Eu, Ep
     
+
+def save_mat(up, sim_name):
+    # Save solutions in MATLAB format using scipy.io
+    uvec = [up.sub(0).sub(0,deepcopy=True).vector().array(), 
+            up.sub(0).sub(1,deepcopy=True).vector().array(), 
+            up.sub(0).sub(2,deepcopy=True).vector().array()]
+    pvec = up.sub(1,deepcopy=True).vector().array()
+    scipy.io.savemat(sim_name + '/u_%d' %tn, { 'u': uvec })
+    scipy.io.savemat(sim_name + '/p_%d' %tn, { 'p': pvec })
