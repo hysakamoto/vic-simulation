@@ -16,8 +16,8 @@ Y = y;
 Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
 % Z = z/(x*y*(exp(t/20)-1)+1);
 % Z = z - X*Y*(exp(t/20) - 1); %% working fine
-p = x*y*z*(exp(t/20)-1);
-% p=0;
+% p = x*y*z*(exp(t/20)-1);
+p=0;
 % 
 % X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
 % Y = y/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2);

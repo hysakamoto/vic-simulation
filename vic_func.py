@@ -9,6 +9,7 @@ from dolfin import *
 import numpy as np
 import newton_solve
 from vic_bcs import *
+import scipy.io
 
 import manufactured_solutions
 # reload(manufactured_solutions)
@@ -198,15 +199,15 @@ def vic_sim( sim_name, \
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
     solver = NonlinearVariationalSolver(problem)
 
-    solver.parameters["nonlinear_solver"] = "newton"
-    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-    solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+    # solver.parameters["nonlinear_solver"] = "newton"
+    # solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+    # solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-    # solver.parameters["nonlinear_solver"] = "snes"
-    # solver.parameters["snes_solver"]["line_search"] = "bt"
-    # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
-    # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
-    # solver.parameters["snes_solver"]["method"] = "tr"
+    solver.parameters["nonlinear_solver"] = "snes"
+    solver.parameters["snes_solver"]["line_search"] = "bt"
+    solver.parameters["snes_solver"]["linear_solver"] = "gmres"
+    solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
@@ -240,12 +241,12 @@ def vic_sim( sim_name, \
 
         Eu = 0
         Ep = 0
-        tes = np.linspace(t, t+dt, n_err_comp)
-        for i in range(len(tes)): 
-            if i>0: # skip first one
-                eu, ep = time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t, t+dt, tes[i])
-                Eu += eu*(tes[i]-tes[i-1])
-                Ep += ep*(tes[i]-tes[i-1])
+        # tes = np.linspace(t, t+dt, n_err_comp)
+        # for i in range(len(tes)): 
+        #     if i>0: # skip first one
+        #         eu, ep = time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t, t+dt, tes[i])
+        #         Eu += eu*(tes[i]-tes[i-1])
+        #         Ep += ep*(tes[i]-tes[i-1])
 
         Eus.append(Eu)
         Eps.append(Ep)
@@ -329,8 +330,8 @@ def vic_sim( sim_name, \
         solver = NonlinearVariationalSolver(problem)
 
         v_1  = project(v,Pu)
+        # up_1.vector()[:] = up.vector()
         up_1.assign(up)
-        # assign(up_1.sub(0),up.sub(0))
         H_1 = project(H, HS)
         S_1 = project(S, HS)
 
@@ -340,8 +341,14 @@ def vic_sim( sim_name, \
 
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
+        # Save solutions in MATLAB format using scipy.io
+        uvec = [up.sub(0).sub(0,deepcopy=True).vector().array(), 
+                up.sub(0).sub(1,deepcopy=True).vector().array(), 
+                up.sub(0).sub(2,deepcopy=True).vector().array()]
+        pvec = up.sub(1,deepcopy=True).vector().array()
+        scipy.io.savemat(sim_name + '/u_%d' %tn, { 'u': uvec })
+        scipy.io.savemat(sim_name + '/p_%d' %tn, { 'p': pvec })
 
-        
 
     return u_max, Eus, Eps, Eus2, Eps2
 
