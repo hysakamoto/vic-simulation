@@ -16,7 +16,7 @@ time_start = time.time()
 
 ## Generate the manufactured solutions, bcs, ics
 print "Generating manufactured solutions from MATLAB output..."
-execfile("conveq.py")
+# execfile("conveq.py")
 
 # Begin simulation
 m_num   = 8

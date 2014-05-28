@@ -20,7 +20,7 @@ import manufactured_solutions
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
-parameters["num_threads"] = 16
+parameters["num_threads"] = 1
 ffc_options = {"optimize": True, \
                "eliminate_zeros": True, \
                "precompute_basis_const": True, \
@@ -201,15 +201,15 @@ def vic_sim( sim_name, \
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
     solver = NonlinearVariationalSolver(problem)
 
-    solver.parameters["nonlinear_solver"] = "newton"
-    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-    solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+    # solver.parameters["nonlinear_solver"] = "newton"
+    # solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+    # solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-    # solver.parameters["nonlinear_solver"] = "snes"
-    # solver.parameters["snes_solver"]["line_search"] = "bt"
-    # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
-    # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
-    # solver.parameters["snes_solver"]["method"] = "tr"
+    solver.parameters["nonlinear_solver"] = "snes"
+    solver.parameters["snes_solver"]["line_search"] = "bt"
+    solver.parameters["snes_solver"]["linear_solver"] = "gmres"
+    solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
@@ -331,16 +331,23 @@ def vic_sim( sim_name, \
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
         solver = NonlinearVariationalSolver(problem)
 
+        # Calculate the new value of v_1 point-wise
+        # pdb.set_trace()
+        # u_tent = up.sub(0,deepcopy=True).vector().array()
+        # u_1_tent = up_1.sub(0,deepcopy=True).vector().array()
+        # v_1_tent = v_1.vector().array()
+        # v_1.vector()[:] = ((u_tent-u_1_tent)/dt - (1-omega)*v_1_tent)/omega
+
+        u_tent = up.sub(0,deepcopy=True).vector().get_local()
+        u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
+        v_1_tent = v_1.vector().get_local()
+        v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1-omega)*v_1_tent)/omega)
+
         # v_1  = project(v,Pu)
-        v_1 = interpolate(v)
         # up_1.vector()[:] = up.vector()
         up_1.assign(up)
         # H_1 = project(H, HS)
         # S_1 = project(S, HS)
-
-        ## Use this function below to get the new value of v_1 point-wise?
-        #v = ((u-u_1)/dt_const - (1-omega_const)*v_1)/omega_const
-
 
 
         # Save solution in VTK format
