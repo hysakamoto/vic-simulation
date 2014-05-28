@@ -13,12 +13,15 @@ K = eye(3)*k;
 
 X = x;
 Y = y;
-Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
+Z = z;
+% Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
+p = cos(x)*y*z*(sin(t/10*pi));
+
 % Z = z/(x*y*(exp(t/20)-1)+1);
 % Z = z - X*Y*(exp(t/20) - 1); %% working fine
-p = x*y*z*(exp(t/20)-1);
+% p = x*y*z*(exp(t/20)-1);
 
-p = x*y*z*(sin(t/10*pi));
+
 
 % 
 % X = x/(-1/(((t - tau)^2/tau^2 - 1)*(stratio - 1) - 1))^(1/2); 
@@ -73,23 +76,29 @@ n_front = n_back*-1;
 
 %% using area change: wood 99
 % left Cauchy?Green def tensor: wood 85
-dsdS = @(n0) (J*sqrt((n0.'*invF)*(invF.'*n0))); % wood 129, 82
-% dadA = @(n) J/sqrt(n.'*b*n); b = F*F.';
+% using are change by current n
+b = F*F.';
+dadA = @(n) J/sqrt(n.'*b*n);
+tbar = @(n) (-p*I+Sigma_E)*n *dadA(n); % use current normal 
+gbar = @(n) (-K*gradient(p,[x,y,z])).'*n * dadA(n);
+
+% using area change by initial n0
+% dsdS = @(n0) (J*sqrt((n0.'*invF)*(invF.'*n0))); % wood 129, 82
 % n_cur = @(n0) (F*n0)/norm(F*n0);
 % dadA_cur = @(n0) dadA(n_cur(n0));
-n_cur = @(n0) n0;
-gbar_ = @(n0) (-K*gradient(p,[x,y,z])).'*n_cur(n0) / dsdS(n0);
-tbar_ = @(n0) (-p*I+Sigma_E)*n_cur(n0) / dsdS(n0); % use current normal 
+% n_cur = @(n0) n0;
+% gbar = @(n0) (-K*gradient(p,[x,y,z])).'*n_cur(n0) / dsdS(n0);
+% tbar = @(n0) (-p*I+Sigma_E)*n_cur(n0) / dsdS(n0); % use current normal 
 %%
 
 %% using wood
-gbar = @(n0) (-K*gradient(p,[x,y,z])).'* (J*invF.'*n0);
+gbar_ = @(n0) (-K*gradient(p,[x,y,z])).'* (J*invF.'*n0);
 % tbar = @(n0) (-p*I+Sigma_E)* (J*invF.'*n0);
 %% http://en.wikipedia.org/wiki/Stress_measures, wood 133
 % S = J*invF*Sigma*invF.'
 % P = J*Signa*invF.'
 % t0 = F*S*N = J*Sigma*invF.'*N = P*N
-tbar = @(n0) (J*(-p*I+Sigma_E)*invF.') *n0;
+tbar_ = @(n0) (J*(-p*I+Sigma_E)*invF.') *n0;
 
 
 

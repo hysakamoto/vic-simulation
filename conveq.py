@@ -79,7 +79,7 @@ source = re.sub('Y0', 'x[1]', source)
 source = re.sub('Z0', 'x[2]', source)
 source = source.translate(None, " ")
 
-f.write( "    source = Expression(\"" + source + "\", t=dt)\n\n" )
+f.write( "    source = Expression(\"" + source + "\", t=dt, k=k)\n\n" )
 
 #### body force ####
 for i in range(3):

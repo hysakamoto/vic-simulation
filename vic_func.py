@@ -141,35 +141,36 @@ def vic_sim( sim_name, \
     ## Viscoelasticity!!!!
 
     ## H-value
-    HS = TensorFunctionSpace(mesh, "Lagrange", p_order )
-    H_1 = Function(HS)
-    H_1.interpolate(Constant(np.zeros([3,3])))
+    # HS = TensorFunctionSpace(mesh, "Lagrange", p_order )
+    # H_1 = Function(HS)
+    # H_1.interpolate(Constant(np.zeros([3,3])))
     
     ## viscoelastic parameters
-    gamma_const = Constant(gamma)
-    tau_const = Constant(tau)
+    # gamma_const = Constant(gamma)
+    # tau_const = Constant(tau)
 
-    ## Kinematics
-    F_1    = I + grad(u_1)             # Deformation gradient
-    F_1    = variable(F_1)             # Make F a variable for tensor differentiations
-    C_1    = F_1.T*F_1                   # Right Cauchy-Green tensor
-    invF_1 = inv(F_1)
-    # Invariants of deformation tensors
-    J_1    = det(F_1)
-    Ic_1   = tr(C_1)
-    IIIc_1 = det(C_1)
-    # Strain energy density (nearly incompressible neo-hookean model)
-    C_hat_1 = (IIIc_1)**(-1.0/3.0)*C_1
-    # psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
-    # compressible neo-Hookean
-    psi_1 = (mu/2.0)*(Ic_1 - 3.0) - mu*ln(J_1) + (lmbda/2.0)*(ln(J_1))**2.0
-    # PK1 stress tensor
-    P_1 = diff(psi_1,F_1)
-    # PK2 stress tensor
-    S_1 = invF_1*P_1
+    # ## Kinematics
+    # F_1    = I + grad(u_1)             # Deformation gradient
+    # F_1    = variable(F_1)             # Make F a variable for tensor differentiations
+    # C_1    = F_1.T*F_1                   # Right Cauchy-Green tensor
+    # invF_1 = inv(F_1)
+    # # Invariants of deformation tensors
+    # J_1    = det(F_1)
+    # Ic_1   = tr(C_1)
+    # IIIc_1 = det(C_1)
+    # # Strain energy density (nearly incompressible neo-hookean model)
+    # C_hat_1 = (IIIc_1)**(-1.0/3.0)*C_1
+    # # psi_1   = mu/2.0*(tr(C_hat_1)-3) + 1.0/2.0*kappa*ln(J_1)**2.0
+    # # compressible neo-Hookean
+    # psi_1 = (mu/2.0)*(Ic_1 - 3.0) - mu*ln(J_1) + (lmbda/2.0)*(ln(J_1))**2.0
+    # # PK1 stress tensor
+    # P_1 = diff(psi_1,F_1)
+    # # PK2 stress tensor
+    # S_1 = invF_1*P_1
 
-    H = exp(-dt_const/tau_const)*H_1 + (1-exp(-dt_const/tau_const))*(S-S_1)/(dt_const/tau_const)
-    Sc = S+gamma_const*H
+    # H = exp(-dt_const/tau_const)*H_1 + (1-exp(-dt_const/tau_const))*(S-S_1)/(dt_const/tau_const)
+    # Sc = S+gamma_const*H
+    Sc = S
 
     ## Poroelasticity!!!!
     omega_const = Constant(omega)
@@ -200,22 +201,22 @@ def vic_sim( sim_name, \
     problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
     solver = NonlinearVariationalSolver(problem)
 
-    # solver.parameters["nonlinear_solver"] = "newton"
-    # solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-    # solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+    solver.parameters["nonlinear_solver"] = "newton"
+    solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
+    solver.parameters["newton_solver"]["preconditioner"] = "ilu"
 
-    solver.parameters["nonlinear_solver"] = "snes"
-    solver.parameters["snes_solver"]["line_search"] = "bt"
-    solver.parameters["snes_solver"]["linear_solver"] = "gmres"
-    solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
-    solver.parameters["snes_solver"]["method"] = "tr"
+    # solver.parameters["nonlinear_solver"] = "snes"
+    # solver.parameters["snes_solver"]["line_search"] = "bt"
+    # solver.parameters["snes_solver"]["linear_solver"] = "gmres"
+    # solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    # solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
-    dfile = File(sim_name + "/displacement.pvd");
-    pfile = File(sim_name + "/pressure.pvd");
-    dfile << (up.sub(0),0.0);
-    pfile << (up.sub(1),0.0);
+    # dfile = File(sim_name + "/displacement.pvd");
+    # pfile = File(sim_name + "/pressure.pvd");
+    # dfile << (up.sub(0),0.0);
+    # pfile << (up.sub(1),0.0);
     # Save solutions in xml format
     File(sim_name+ '/up_%d.xml' %0) << up
 
@@ -223,12 +224,12 @@ def vic_sim( sim_name, \
 
     ### Function spaces to calculate error
     ## Create mesh and define function space
-    mesh_e = UnitCubeMesh(16,16,16)
+    # mesh_e = UnitCubeMesh(16,16,16)
 
     ##  Function Spaces
-    Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
-    Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
-    V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
+    # Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
+    # Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
+    # V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
 
     # Save mesh
     File(sim_name+'/mesh.xdmf') << mesh
@@ -247,12 +248,6 @@ def vic_sim( sim_name, \
 
         Eu = 0
         Ep = 0
-        # tes = np.linspace(t, t+dt, n_err_comp)
-        # for i in range(len(tes)): 
-        #     if i>0: # skip first one
-        #         eu, ep = time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t, t+dt, tes[i])
-        #         Eu += eu*(tes[i]-tes[i-1])
-        #         Ep += ep*(tes[i]-tes[i-1])
 
         Eus.append(Eu)
         Eps.append(Ep)
@@ -332,20 +327,25 @@ def vic_sim( sim_name, \
                bc_pbottom, bc_pleft, bc_pfront]#, bc_ptop, bc_pright, bc_pback]
 
 
-
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
         solver = NonlinearVariationalSolver(problem)
 
-        v_1  = project(v,Pu)
+        # v_1  = project(v,Pu)
+        v_1 = interpolate(v)
         # up_1.vector()[:] = up.vector()
         up_1.assign(up)
-        H_1 = project(H, HS)
-        S_1 = project(S, HS)
+        # H_1 = project(H, HS)
+        # S_1 = project(S, HS)
+
+        ## Use this function below to get the new value of v_1 point-wise?
+        #v = ((u-u_1)/dt_const - (1-omega_const)*v_1)/omega_const
+
+
 
         # Save solution in VTK format
-        dfile << (up.sub(0), t);
-        pfile << (up.sub(1), t);
+        # dfile << (up.sub(0), t);
+        # pfile << (up.sub(1), t);
         # Save solutions in xml format
         File(sim_name+ '/up_%d.xml' %tn) << up
 

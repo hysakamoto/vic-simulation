@@ -9,7 +9,7 @@ dt      = 1    # time step
 max_it  = int(T_total/dt)
 
 # Material parameters
-Ee, nu = 100.0, 0.3
+Ee, nu = 100.0, 0.25
 mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 perm    = 1.0
 
@@ -17,15 +17,9 @@ perm    = 1.0
 [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial] \
     = manufactured_solutions(0.0, perm, mu, lmbda)
 
-# load mesh
-mesh = Mesh(sim_name+'/mesh.xdmf')
-
-##  Function Spaces
-Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
-Pp = FunctionSpace(mesh, "Lagrange", p_order)        # space for pressure
-V  = MixedFunctionSpace([Pu,Pp])                    # mixed space
 
 
+##### TIME-STEP CONVERGENCE #####
 Eus1 = []
 Eps1 = []
 
@@ -38,6 +32,15 @@ for i in range(len(max_its)):
     n_err_comp = max_it_num/max_it # number of error computation per time step
     dt = T_total/float(max_it)
     sim_name = sim_basename + str(max_it)
+
+    # load mesh
+    mesh = Mesh(sim_name+'/mesh.xdmf')
+
+    ##  Function Spaces
+    Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
+    Pp = FunctionSpace(mesh, "Lagrange", p_order)        # space for pressure
+    V  = MixedFunctionSpace([Pu,Pp])                    # mixed space
+
 
     ddt = dt/(n_err_comp)
 
@@ -73,13 +76,11 @@ for i in range(len(max_its)):
 
             ### Error against exact solutions
             error_u = (uh-u_e)**2*dx
-            Eu += sqrt(assemble(error_u)*ddt)
+            Eu += sqrt(assemble(error_u))*ddt
 
             error_p = (ph-p_e)**2*dx
-            Ep += sqrt(assemble(error_p)*ddt)
-
-
-
+            Ep += sqrt(assemble(error_p))*ddt
+            
     Eu = Eu
     Ep = Ep
 
@@ -87,9 +88,12 @@ for i in range(len(max_its)):
     Eps1.append(Ep)
 
 
-print Eps1
 print Eus1
+print Eps1
 
+
+
+##### MESH CONVERGENCE #####
 
 ##  Finest Function Spaces
 mesh_e = UnitCubeMesh(16,16,16)
@@ -103,6 +107,11 @@ Eus2 = []
 Eps2 = []
 m_nums = [1,2,4,8,16]
 sim_basename = 'mesh/'
+
+T_total = 10.0
+max_it = 64
+dt = T_total/float(max_it)
+
 for i in range(len(m_nums)):
     m_num = m_nums[i]
     sim_name = sim_basename + str(m_num)
@@ -130,12 +139,12 @@ for i in range(len(m_nums)):
         u_intp = interpolate(u_tent, Pu_e)
         u_e_intp = interpolate(u_e, Pu_e)
         error_u_intp = (u_intp - u_e_intp)**2*dx
-        Eu += sqrt(assemble(error_u_intp))
+        Eu += sqrt(assemble(error_u_intp))*dt
 
         p_intp = interpolate(p_tent, Pp_e)
         p_e_intp = interpolate(p_e, Pp_e)
         error_p_intp = (p_intp - p_e_intp)**2*dx
-        Ep += sqrt(assemble(error_p_intp))
+        Ep += sqrt(assemble(error_p_intp))*dt
 
         t += dt
 
