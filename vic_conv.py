@@ -22,6 +22,16 @@ perm    = 1.0
 ##### TIME-STEP CONVERGENCE #####
 Eus1 = []
 Eps1 = []
+L2u1 = []
+L2p1 = []
+
+
+##  Finest Function Spaces
+mesh_e = UnitCubeMesh(16,16,16)
+Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
+Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
+V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
+
 
 T_total = 10.0
 max_its = [2,4,8,16,32,64]
@@ -34,7 +44,11 @@ for i in range(len(max_its)):
     sim_name = sim_basename + str(max_it)
 
     # load mesh
-    mesh = Mesh(sim_name+'/mesh.xdmf')
+    # mesh = Mesh(sim_name+'/mesh.xdmf')
+    m_num = 16
+    mesh = UnitCubeMesh(m_num, m_num, m_num)
+    File(sim_name+'/mesh.xdmf') << mesh
+
 
     ##  Function Spaces
     Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
@@ -46,6 +60,8 @@ for i in range(len(max_its)):
 
     Eu = 0.0
     Ep = 0.0
+    L2u = 0.0
+    L2p = 0.0
     t = 0.0
     for tn in range(1,max_it+1):
 
@@ -80,6 +96,16 @@ for i in range(len(max_its)):
 
             error_p = (ph-p_e)**2*dx
             Ep += sqrt(assemble(error_p))*ddt
+
+            # L2 norm of these
+            u_e_intp = interpolate(u_e, Pu_e)
+            p_e_intp = interpolate(p_e, Pp_e)
+
+            uesq = u_e_intp**2*dx
+            pesq = p_e_intp**2*dx
+            L2u += sqrt(assemble(uesq))*ddt
+            L2p += sqrt(assemble(pesq))*ddt
+
             
     Eu = Eu
     Ep = Ep
@@ -87,10 +113,8 @@ for i in range(len(max_its)):
     Eus1.append(Eu)
     Eps1.append(Ep)
 
-
-print Eus1
-print Eps1
-
+    L2u1.append(L2u)
+    L2p1.append(L2p)
 
 
 ##### MESH CONVERGENCE #####
@@ -99,17 +123,19 @@ print Eps1
 mesh_e = UnitCubeMesh(16,16,16)
 Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
 Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
-V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
+V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
 
 ### Run Simulation
 u_max = []
 Eus2 = []
 Eps2 = []
+L2u2 = []
+L2p2 = []
 m_nums = [1,2,4,8,16]
 sim_basename = 'mesh/'
 
 T_total = 10.0
-max_it = 64
+max_it = 16
 dt = T_total/float(max_it)
 
 for i in range(len(m_nums)):
@@ -117,7 +143,9 @@ for i in range(len(m_nums)):
     sim_name = sim_basename + str(m_num)
 
     # load mesh
-    mesh = Mesh(sim_name+'/mesh.xdmf')
+    # mesh = Mesh(sim_name+'/mesh.xdmf')
+    mesh = UnitCubeMesh(m_num, m_num, m_num)
+    File(sim_name+'/mesh.xdmf') << mesh
 
     ##  Function Spaces
     Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
@@ -126,6 +154,8 @@ for i in range(len(m_nums)):
 
     Ep = 0.0
     Eu = 0.0
+    L2u = 0.0
+    L2p = 0.0
     t = dt
     for tn in range(1, max_it+1):
 
@@ -134,6 +164,7 @@ for i in range(len(m_nums)):
         u_tent, p_tent = up.split(deepcopy=True) 
 
         u_e.t = t
+        p_e.t = t
 
         # Explicit interpolation of u_e onto the same space as u:
         u_intp = interpolate(u_tent, Pu_e)
@@ -146,12 +177,42 @@ for i in range(len(m_nums)):
         error_p_intp = (p_intp - p_e_intp)**2*dx
         Ep += sqrt(assemble(error_p_intp))*dt
 
+        # L2 norm of these
+        uesq = u_e_intp**2*dx
+        pesq = p_e_intp**2*dx
+        L2u += sqrt(assemble(uesq))*dt
+        L2p += sqrt(assemble(pesq))*dt
+
         t += dt
 
 
     Eus2.append(Eu)
     Eps2.append(Ep)
+    L2u2.append(L2u)
+    L2p2.append(L2p)
 
 
-print Eus2
-print Eps2
+
+# print Eus2
+# print Eps2
+
+
+##### PLOT RESULTS ######
+
+relEu1 = [Eus1[i]/L2u1[i] for i in range(len(Eus1))]
+relEp1 = [Eps1[i]/L2p1[i] for i in range(len(Eus1))]
+
+plt.loglog(max_its,relEu1)
+plt.loglog(max_its,relEp1)
+plt.legend(('displacement', 'pressure'))
+plt.show()
+
+
+relEu2 = [Eus2[i]/L2u2[i] for i in range(len(Eus2))]
+relEp2 = [Eps2[i]/L2p2[i] for i in range(len(Eus2))]
+
+plt.loglog(m_nums,relEu2)
+plt.loglog(m_nums,relEp2)
+plt.legend(('displacement', 'pressure'))
+plt.show()
+

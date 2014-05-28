@@ -20,7 +20,7 @@ import manufactured_solutions
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
 parameters["form_compiler"]["quadrature_degree"] = 2
-parameters["num_threads"] = 1
+# parameters["num_threads"] = 1
 ffc_options = {"optimize": True, \
                "eliminate_zeros": True, \
                "precompute_basis_const": True, \
@@ -208,15 +208,15 @@ def vic_sim( sim_name, \
     solver.parameters["nonlinear_solver"] = "snes"
     solver.parameters["snes_solver"]["line_search"] = "bt"
     solver.parameters["snes_solver"]["linear_solver"] = "gmres"
-    solver.parameters["snes_solver"]["preconditioner"] = "ilu"        
+    solver.parameters["snes_solver"]["preconditioner"] = "sor" # ilu
     solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
-    # dfile = File(sim_name + "/displacement.pvd");
-    # pfile = File(sim_name + "/pressure.pvd");
-    # dfile << (up.sub(0),0.0);
-    # pfile << (up.sub(1),0.0);
+    dfile = File(sim_name + "/displacement.pvd");
+    pfile = File(sim_name + "/pressure.pvd");
+    dfile << (up.sub(0),0.0);
+    pfile << (up.sub(1),0.0);
     # Save solutions in xml format
     File(sim_name+ '/up_%d.xml' %0) << up
 
@@ -351,8 +351,8 @@ def vic_sim( sim_name, \
 
 
         # Save solution in VTK format
-        # dfile << (up.sub(0), t);
-        # pfile << (up.sub(1), t);
+        dfile << (up.sub(0), t);
+        pfile << (up.sub(1), t);
         # Save solutions in xml format
         File(sim_name+ '/up_%d.xml' %tn) << up
 

@@ -15,8 +15,20 @@ reload(vic_func)
 time_start = time.time()
 
 ## Generate the manufactured solutions, bcs, ics
+
+# from mpi4py import MPI
+# comm = MPI.COMM_WORLD
+# rank = comm.Get_rank()
+# if rank == 0:
+#     print "Generating manufactured solutions from MATLAB output..."
+#     execfile("conveq.py")
+# comm.barrier()
+# comm.Disconnect()
 print "Generating manufactured solutions from MATLAB output..."
-# execfile("conveq.py")
+execfile("conveq.py")
+
+# import sys
+# sys.exit()
 
 # Begin simulation
 m_num   = 8
@@ -48,32 +60,32 @@ errors_p2 = []
 
 ######################### TEST SIMULATION #########################
 
-sim_name = 'result/'
-max_m_nums = 16
-n_err_comp = max_m_nums/m_num+1
-u_max, Eus, Eps, Eus2, Eps2\
-    = vic_func.vic_sim( sim_name, 
-                        m_num, p_order, dt, T_total, max_it, omega,
-                        Ee, nu, gamma, tau, perm,
-                        top_trac, body_force,
-                        n_err_comp)
+# sim_name = 'result/'
+# max_m_nums = 16
+# n_err_comp = max_m_nums/m_num+1
+# u_max, Eus, Eps, Eus2, Eps2\
+#     = vic_func.vic_sim( sim_name, 
+#                         m_num, p_order, dt, T_total, max_it, omega,
+#                         Ee, nu, gamma, tau, perm,
+#                         top_trac, body_force,
+#                         n_err_comp)
 
 ######################### MESH SIMULATION #########################
 
-# sim_basename = 'mesh/'
-# T_total = 2.5
-# max_it = 16
-# dt = T_total/float(max_it)
+sim_basename = 'mesh/'
+T_total = 10
+max_it = 16
+dt = T_total/float(max_it)
 
-# m_nums = [1,2,4,8,16]
-# for i in range(len(m_nums)):
-#     m_num = m_nums[i]
-#     sim_name = sim_basename + str(m_num)
-#     u_max, Eus, Eps, Eus2, Eps2  \
-#         = vic_func.vic_sim( sim_name, 
-#                             m_num, p_order, dt, T_total, max_it, omega,
-#                             Ee, nu, gamma, tau, perm,
-#                             top_trac, body_force, 1 )
+m_nums = [1,2,4,8,16]
+for i in range(len(m_nums)):
+    m_num = m_nums[i]
+    sim_name = sim_basename + str(m_num)
+    u_max, Eus, Eps, Eus2, Eps2  \
+        = vic_func.vic_sim( sim_name, 
+                            m_num, p_order, dt, T_total, max_it, omega,
+                            Ee, nu, gamma, tau, perm,
+                            top_trac, body_force, 1 )
 
 
 ######################### TIME SIMULATION #########################
