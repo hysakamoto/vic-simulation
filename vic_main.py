@@ -14,6 +14,8 @@ reload(vic_func)
 ## starting time
 time_start = time.time()
 
+base_base_name = 'bk_newton/'
+
 ## Generate the manufactured solutions, bcs, ics
 
 # from mpi4py import MPI
@@ -36,7 +38,7 @@ p_order = 1
 T_total = 20.0
 dt      = 0.5    # time step
 max_it  = 20
-omega   = 0.5    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
+omega   = 1.0    # forward Euler: 0, backward Euler: 1, Crank-Nicholson: 0.5 
 gamma   = 0.0    # 0 for no viscoelasticity
 tau     = 1.0
 Ee      = 100.0
@@ -72,12 +74,12 @@ errors_p2 = []
 
 ######################### MESH SIMULATION #########################
 
-sim_basename = 'mesh/'
-T_total = 64
-max_it = 16
+sim_basename = base_base_name + 'mesh/'
+T_total = 10
+max_it = 64
 dt = T_total/float(max_it)
 
-m_nums = [4,8,16]
+m_nums = [1,2,4,8,16]
 for i in range(len(m_nums)):
     m_num = m_nums[i]
     sim_name = sim_basename + str(m_num)
@@ -90,7 +92,7 @@ for i in range(len(m_nums)):
 
 ######################### TIME SIMULATION #########################
 
-# sim_basename = 'time/'
+# sim_basename = base_base_name + 'time/'
 # m_num = 16
 
 # T_total = 10.0

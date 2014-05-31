@@ -156,9 +156,24 @@ p_initial = p_initial.translate(None, " ")
 
 f.write( "    p_initial = Expression(\"" + p_initial + "\", t=dt, k=k)\n\n" )
 
+for i in range(3):
+    v_initial[i] = v_initial[i].translate(None, " ")
+    v_initial[i] = re.sub('\^', '**', v_initial[i])
+    v_initial[i] = str(rec(ast.parse(v_initial[i]).body[0]) )
+    v_initial[i] = re.sub('X0', 'x[0]', v_initial[i])
+    v_initial[i] = re.sub('Y0', 'x[1]', v_initial[i])
+    v_initial[i] = re.sub('Z0', 'x[2]', v_initial[i])
+    v_initial[i] = v_initial[i].translate(None, " ")
+
+f.write( "    v_initial = Expression((\"" + v_initial[0] + "\"," + "\"" + v_initial[1] \
+         + "\"," + "\"" + v_initial[2] + "\"" + "), lm=lm, mu=mu, k=k)\n\n" )
+
+
+
+## returning variables
 
 f.write('    tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front]\n\n')
 f.write('    gbars = [gbar_top, gbar_bottom, gbar_right, gbar_left, gbar_back, gbar_front]\n\n')
-f.write('    return [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial]\n\n')
+f.write('    return [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial]\n\n')
 
 f.close()

@@ -16,10 +16,11 @@ import manufactured_solutions
 
 # DEBUG
 # set_log_level(DEBUG) #PROGRESS
+# set_log_level(PROGRESS) #
 
 # Optimization options for the form compiler
 parameters["form_compiler"]["cpp_optimize"] = True
-parameters["form_compiler"]["quadrature_degree"] = 2
+# parameters["form_compiler"]["quadrature_degree"] = 2
 # parameters["num_threads"] = 1
 ffc_options = {"optimize": True, \
                "eliminate_zeros": True, \
@@ -43,7 +44,7 @@ def vic_sim( sim_name, \
     mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 
     # Exact solutions
-    [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial] \
+    [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
         = manufactured_solutions.manufactured_solutions(dt, perm, mu, lmbda)
 
     
@@ -175,8 +176,10 @@ def vic_sim( sim_name, \
     ## Poroelasticity!!!!
     omega_const = Constant(omega)
     v_1 = Function(Pu)
-    v_1.interpolate(Constant((0.0, 0.0, 0.0)))
-    v = ((u-u_1)/dt_const - (1-omega_const)*v_1)/omega_const
+    assign (v_1, interpolate(v_initial,Pu))
+
+    # v_1.interpolate(Constant((0.0, 0.0, 0.0)))
+    v = ((u-u_1)/dt_const)
 
     # Compute residual
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
@@ -213,10 +216,10 @@ def vic_sim( sim_name, \
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
-    # dfile = File(sim_name + "/displacement.pvd");
-    # pfile = File(sim_name + "/pressure.pvd");
-    # dfile << (up.sub(0),0.0);
-    # pfile << (up.sub(1),0.0);
+    dfile = File(sim_name + "/displacement.pvd");
+    pfile = File(sim_name + "/pressure.pvd");
+    dfile << (up.sub(0),0.0);
+    pfile << (up.sub(1),0.0);
     # Save solutions in xml format
     File(sim_name+ '/up_%d.xml' %0) << up
 
@@ -341,7 +344,7 @@ def vic_sim( sim_name, \
         u_tent = up.sub(0,deepcopy=True).vector().get_local()
         u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
         v_1_tent = v_1.vector().get_local()
-        v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1-omega)*v_1_tent)/omega)
+        v_1.vector().set_local(((u_tent-u_1_tent)/dt))
 
         # v_1  = project(v,Pu)
         # up_1.vector()[:] = up.vector()
@@ -351,8 +354,8 @@ def vic_sim( sim_name, \
 
 
         # Save solution in VTK format
-        # dfile << (up.sub(0), t);
-        # pfile << (up.sub(1), t);
+        dfile << (up.sub(0), t);
+        pfile << (up.sub(1), t);
         # Save solutions in xml format
         File(sim_name+ '/up_%d.xml' %tn) << up
 

@@ -1,7 +1,7 @@
 from dolfin import *
 from manufactured_solutions import manufactured_solutions
 
-sim_name = 'result'
+base_base_name = 'bk_newton'
 p_order = 1
 
 T_total = 10.0
@@ -14,12 +14,10 @@ mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
 perm    = 1.0
 
 # get manufactured solutions
-[u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial] \
+[u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
     = manufactured_solutions(0.0, perm, mu, lmbda)
 
-
-
-##### TIME-STEP CONVERGENCE #####
+# ##### TIME-STEP CONVERGENCE #####
 print "time-step convergence analysis"
 Eus1 = []
 Eps1 = []
@@ -37,7 +35,7 @@ V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
 T_total = 10.0
 max_its = [2,4,8,16,32,64]
 max_it_num = max(max_its)
-sim_basename = 'omega_10/time/'
+sim_basename = base_base_name+ '/' +'time/'
 for i in range(len(max_its)):
     print i
 
@@ -137,7 +135,7 @@ for i in range(len(max_its)):
 # L2p2 = []
 # m_nums = [1,2,4,8,16]
 # # m_nums = [1,2,4,8]
-# sim_basename = 'omega_10/mesh/'
+# sim_basename = base_base_name+'/' + 'mesh/'
 
 # T_total = 10.0
 # max_it = 64
@@ -198,12 +196,6 @@ for i in range(len(max_its)):
 #     L2u2.append(sqrt(L2u))
 #     L2p2.append(sqrt(L2p))
 
-
-
-# # print Eus2
-# # print Eps2
-
-
 # ##### PLOT RESULTS ######
 
 relEu1 = [Eus1[i]/L2u1[i] for i in range(len(Eus1))]
@@ -212,17 +204,23 @@ relEp1 = [Eps1[i]/L2p1[i] for i in range(len(Eus1))]
 plt.loglog(max_its,relEu1, '-o')
 plt.loglog(max_its,relEp1, '-o')
 plt.legend(('displacement', 'pressure'))
-plt.savefig('timestep-up-conv_10.jpg')
+plt.savefig(base_base_name + '/'+'timestep-up-conv.jpg')
 plt.show()
 
-# relEu2 = [Eus2[i]/L2u2[i] for i in range(len(Eus2))]
-# relEp2 = [Eps2[i]/L2p2[i] for i in range(len(Eus2))]
+relEu2 = [Eus2[i]/L2u2[i] for i in range(len(Eus2))]
+relEp2 = [Eps2[i]/L2p2[i] for i in range(len(Eus2))]
 
-# plt.loglog(m_nums,relEu2,'-o')
-# plt.loglog(m_nums,relEp2,'-o')
-# plt.legend(('displacement', 'pressure'))
-# plt.savefig('mesh-up-conv_10.jpg')
-# plt.show()
+plt.loglog(m_nums,relEu2,'-o')
+plt.loglog(m_nums,relEp2,'-o')
+plt.legend(('displacement', 'pressure'))
+plt.savefig(base_base_name + '/' + 'mesh-up-conv_10.jpg')
+plt.show()
+
+with open(base_base_name + '/convergence.txt', 'w') as f:
+    f.write(str(Eus1)+'\n')
+    f.write(str(Eps1)+'\n')
+    f.write(str(Eus2)+'\n')
+    f.write(str(Eps2)+'\n')
 
 # # Eus1
 # # [0.0021011570658114463,

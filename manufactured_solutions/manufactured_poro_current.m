@@ -15,9 +15,9 @@ X = x;
 Y = y;
 % Z = z;
 Z = ((4*z*exp(t/40) - 4*z + 1)^(1/2) - 1)/(2*(exp(t/40) - 1));
-p = cos(x)*y*z*(sin(t/10*pi));
+p = x*y*z*(sin(t/10*pi));
 
-% Z = z/(x*y*(exp(t/20)-1)+1);
+Z = z/(x*y*(exp(t/20)-1)+1);
 % Z = z - X*Y*(exp(t/20) - 1); %% working fine
 % p = x*y*z*(exp(t/20)-1);
 
@@ -60,9 +60,9 @@ Sigma_E = mu/J*(b-I) + lm/J*(log(J))*I;
 Sigma = Sigma_E-p*I;
 
 %% body force
-bf(1) = diff(Sigma(1,1),x);
-bf(2) = diff(Sigma(2,2),y);
-bf(3) = diff(Sigma(3,3),z);
+bf(1) = divergence(Sigma(1,:), [x,y,z]);
+bf(2) = divergence(Sigma(2,:), [x,y,z]);
+bf(3) = divergence(Sigma(3,:), [x,y,z]);
 bf = bf.';
 
 %% Boundary conditions: Neumann
@@ -76,29 +76,26 @@ n_front = n_back*-1;
 
 %% using area change: wood 99
 % left Cauchy?Green def tensor: wood 85
-% using are change by current n
-b = F*F.';
-dadA = @(n) J/sqrt(n.'*b*n);
-tbar = @(n) (-p*I+Sigma_E)*n *dadA(n); % use current normal 
-gbar = @(n) (-K*gradient(p,[x,y,z])).'*n * dadA(n);
-
-% using area change by initial n0
-% dsdS = @(n0) (J*sqrt((n0.'*invF)*(invF.'*n0))); % wood 129, 82
-% n_cur = @(n0) (F*n0)/norm(F*n0);
-% dadA_cur = @(n0) dadA(n_cur(n0));
-% n_cur = @(n0) n0;
-% gbar = @(n0) (-K*gradient(p,[x,y,z])).'*n_cur(n0) / dsdS(n0);
-% tbar = @(n0) (-p*I+Sigma_E)*n_cur(n0) / dsdS(n0); % use current normal 
+% % using are change by current n
+% b = F*F.';
+% dadA = @(n) J/sqrt(n.'*b*n); % wood 129, 82
+% tbar = @(n) (-p*I+Sigma_E)*n *dadA(n); % use current normal 
+% gbar = @(n) (-K*gradient(p,[x,y,z])).'*n * dadA(n);
+% 
+% % using area change by initial n0
+% dsdS = @(n0) (J*sqrt((n0.'*inv(F.'*F)*n0))); % Un penetration: (11)
+% ncur = @(n0) invF.'*n0 / sqrt(n0.'*inv(F.'*F)*n0);
+% tbar_0 = @(n0) (-p*I+Sigma_E)*ncur(n0) *dsdS(n0);
+% gbar_0 = @(n0) (-K*gradient(p,[x,y,z])).'*ncur(n0) * dsdS(n0);
 %%
 
 %% using wood
-gbar_ = @(n0) (-K*gradient(p,[x,y,z])).'* (J*invF.'*n0);
-% tbar = @(n0) (-p*I+Sigma_E)* (J*invF.'*n0);
 %% http://en.wikipedia.org/wiki/Stress_measures, wood 133
 % S = J*invF*Sigma*invF.'
 % P = J*Signa*invF.'
 % t0 = F*S*N = J*Sigma*invF.'*N = P*N
-tbar_ = @(n0) (J*(-p*I+Sigma_E)*invF.') *n0;
+gbar = @(n0) (-K*gradient(p,[x,y,z])).'* (J*invF.'*n0);
+tbar = @(n0) (J*(-p*I+Sigma_E)*invF.') *n0;
 
 
 
@@ -124,7 +121,7 @@ tbars = [tbar_top, tbar_bottom, tbar_right, tbar_left, tbar_back, tbar_front];
 
 u_initial = limit(u,t,0);
 p_initial = subs(p,t,0);
-
+v_initial = subs(v,t,0);
 
 %% Convert to initial representations
 
@@ -154,6 +151,7 @@ bf_ = subs(bf, [x,y,z], [x_,y_,z_]);
 
 u_initial_ = subs(subs(u_initial, [x,y,z], [x_,y_,z_]),t,0);
 p_initial_ = subs(subs(p_initial, [x,y,z], [x_,y_,z_]),t,0);
+v_initial_ = subs(subs(v_initial, [x,y,z], [x_,y_,z_]),t,0);
 
 gbars_ = subs(gbars, [x,y,z], [x_,y_,z_]);
 tbars_ = subs(tbars, [x,y,z], [x_,y_,z_]);
@@ -184,6 +182,10 @@ fprintf(fileID, 'u_initial = [''%s'', ''%s'', ''%s'']\n\n', ...
 
 %% p_initial
 fprintf(fileID, 'p_initial = ''%s''\n\n', char(p_initial_));
+
+%% v_initial
+fprintf(fileID, 'v_initial = [''%s'', ''%s'', ''%s'']\n\n', ...
+    char(v_initial_(1)), char(v_initial_(2)), char(v_initial_(3)) );
 
 %% gbars
 fprintf(fileID,'gbars = \\\n[');
