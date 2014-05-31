@@ -185,8 +185,8 @@ def vic_sim( sim_name, \
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
-        - (J*source*q)*dx \
-        + (inner(body_force,w)*J)*dx \
+        - (source*q)*dx \
+        + (inner(body_force,w))*dx \
         - (inner(tbar_top,w))*ds_neumann(0) \
         - (inner(tbar_right,w))*ds_neumann(2) \
         - (inner(tbar_back,w))*ds_neumann(4) \

@@ -20,105 +20,105 @@ perm    = 1.0
 [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
     = manufactured_solutions(0.0, perm, mu, lmbda)
 
-# ##### TIME-STEP CONVERGENCE #####
-# print "time-step convergence analysis"
-# Eus1 = []
-# Eps1 = []
-# L2u1 = []
-# L2p1 = []
+##### TIME-STEP CONVERGENCE #####
+print "time-step convergence analysis"
+Eus1 = []
+Eps1 = []
+L2u1 = []
+L2p1 = []
 
 
-# ##  Finest Function Spaces
-# mesh_e = UnitCubeMesh(16,16,16)
-# Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
-# Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
-# V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
+##  Finest Function Spaces
+mesh_e = UnitCubeMesh(16,16,16)
+Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
+Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
+V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
 
 
-# T_total = 10.0
-# max_its = [2,4,8,16,32,64]
-# max_it_num = max(max_its)
-# sim_basename = base_base_name+ '/' +'time/'
-# for i in range(len(max_its)):
-#     print i
+T_total = 10.0
+max_its = [1, 2,4,8,16,32,64]
+max_it_num = max(max_its)
+sim_basename = base_base_name+ '/' +'time/'
+for i in range(len(max_its)):
+    print i
 
-#     max_it = max_its[i]
-#     n_err_comp = max_it_num/max_it # number of error computation per time step
-#     dt = T_total/float(max_it)
-#     sim_name = sim_basename + str(max_it)
+    max_it = max_its[i]
+    n_err_comp = max_it_num/max_it # number of error computation per time step
+    dt = T_total/float(max_it)
+    sim_name = sim_basename + str(max_it)
 
-#     # load mesh
-#     # mesh = Mesh(sim_name+'/mesh.xdmf')
-#     m_num = 16
-#     mesh = UnitCubeMesh(m_num, m_num, m_num)
-#     File(sim_name+'/mesh.xdmf') << mesh
+    # load mesh
+    # mesh = Mesh(sim_name+'/mesh.xdmf')
+    m_num = 16
+    mesh = UnitCubeMesh(m_num, m_num, m_num)
+    File(sim_name+'/mesh.xdmf') << mesh
 
 
-#     ##  Function Spaces
-#     Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
-#     Pp = FunctionSpace(mesh, "Lagrange", p_order)        # space for pressure
-#     V  = MixedFunctionSpace([Pu,Pp])                    # mixed space
+    ##  Function Spaces
+    Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
+    Pp = FunctionSpace(mesh, "Lagrange", p_order)        # space for pressure
+    V  = MixedFunctionSpace([Pu,Pp])                    # mixed space
 
-#     Eu = 0.0
-#     Ep = 0.0
-#     L2u = 0.0
-#     L2p = 0.0
-#     t = 0.0
-#     for tn in range(1,max_it+1):
+    Eu = 0.0
+    Ep = 0.0
+    L2u = 0.0
+    L2p = 0.0
+    t = 0.0
+    for tn in range(1,max_it+1):
 
-#         # load solutions
-#         up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
-#         u_1 = up_1.sub(0)
-#         p_1 = up_1.sub(1)
+        # load solutions
+        up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
+        u_1 = up_1.sub(0)
+        p_1 = up_1.sub(1)
         
-#         up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
-#         u_2 = up_2.sub(0)
-#         p_2 = up_2.sub(1)
+        up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
+        u_2 = up_2.sub(0)
+        p_2 = up_2.sub(1)
 
-#         t1 = Constant(t)
-#         t2 = Constant(t+dt)
+        t1 = Constant(t)
+        t2 = Constant(t+dt)
 
-#         # n_err_comp = 2
-#         ddt = dt/(n_err_comp)
+        # n_err_comp = 2
+        ddt = dt/(n_err_comp)
 
-#         for j in range(n_err_comp):
+        for j in range(n_err_comp):
 
-#             t += ddt
+            t += ddt
         
-#             # set time
-#             u_e.t = t-ddt/2.0
-#             p_e.t = t-ddt/2.0
+            # set time
+            u_e.t = t-ddt/2.0
+            p_e.t = t-ddt/2.0
 
-#             t_const = Constant(t-ddt/2.0)
+            t_const = Constant(t-ddt/2.0)
 
-#             uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
-#             ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
+            uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
+            ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
 
-#             ### Error against exact solutions
-#             error_u = (uh-u_e)**2*dx
-#             Eu += (assemble(error_u))*ddt
+            ### Error against exact solutions
+            error_u = (uh-u_e)**2*dx
+            Eu += (assemble(error_u))*ddt
 
-#             error_p = (ph-p_e)**2*dx
-#             Ep += (assemble(error_p))*ddt
+            error_p = (ph-p_e)**2*dx
+            Ep += (assemble(error_p))*ddt
 
-#             # L2 norm of these
-#             u_e_intp = interpolate(u_e, Pu_e)
-#             p_e_intp = interpolate(p_e, Pp_e)
+            # L2 norm of these
+            u_e_intp = interpolate(u_e, Pu_e)
+            p_e_intp = interpolate(p_e, Pp_e)
 
-#             uesq = u_e_intp**2*dx
-#             pesq = p_e_intp**2*dx
-#             L2u += (assemble(uesq))*ddt
-#             L2p += (assemble(pesq))*ddt
+            uesq = u_e_intp**2*dx
+            pesq = p_e_intp**2*dx
+            L2u += (assemble(uesq))*ddt
+            L2p += (assemble(pesq))*ddt
 
             
-#     Eu = Eu
-#     Ep = Ep
+    Eu = Eu
+    Ep = Ep
 
-#     Eus1.append(sqrt(Eu))
-#     Eps1.append(sqrt(Ep))
+    Eus1.append(sqrt(Eu))
+    Eps1.append(sqrt(Ep))
 
-#     L2u1.append(sqrt(L2u))
-#     L2p1.append(sqrt(L2p))
+    L2u1.append(sqrt(L2u))
+    L2p1.append(sqrt(L2p))
 
 
 ##### MESH CONVERGENCE #####
@@ -215,7 +215,7 @@ relEp2 = [Eps2[i]/L2p2[i] for i in range(len(Eus2))]
 plt.loglog(m_nums,relEu2,'-o')
 plt.loglog(m_nums,relEp2,'-o')
 plt.legend(('displacement', 'pressure'))
-plt.savefig(base_base_name + '/' + 'mesh-up-conv_10.jpg')
+plt.savefig(base_base_name + '/' + 'mesh-up-conv.jpg')
 plt.show()
 
 with open(base_base_name + '/convergence.txt', 'w') as f:
