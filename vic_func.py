@@ -183,7 +183,7 @@ def vic_sim( sim_name, \
         - p*J*inner(ddotF, invF.T)*dx                                         \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         - (source*q)*dx \
-        + (inner(body_force,w))*dx \
+        + (dot(body_force,w))*dx \
         - (dot(tbar_top,w))*ds_neumann(0) \
         - (dot(tbar_right,w))*ds_neumann(2) \
         - (dot(tbar_back,w))*ds_neumann(4) \
