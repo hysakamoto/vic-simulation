@@ -213,10 +213,10 @@ def vic_sim( sim_name, \
 
     ## Save initial conditions in VTK format
     assign(up, up_1)
-    dfile = File(sim_name + "/displacement.pvd");
-    pfile = File(sim_name + "/pressure.pvd");
-    dfile << (up.sub(0),0.0);
-    pfile << (up.sub(1),0.0);
+    # dfile = File(sim_name + "/displacement.pvd");
+    # pfile = File(sim_name + "/pressure.pvd");
+    # dfile << (up.sub(0),0.0);
+    # pfile << (up.sub(1),0.0);
     # Save solutions in xml format
     File(sim_name+ '/up_%d.xml' %0) << up
 
@@ -232,7 +232,7 @@ def vic_sim( sim_name, \
     # V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
 
     # Save mesh
-    File(sim_name+'/mesh.xdmf') << mesh
+    # File(sim_name+'/mesh.xdmf') << mesh
 
     ### Run Simulation
     u_max = []
@@ -351,8 +351,8 @@ def vic_sim( sim_name, \
 
 
         # Save solution in VTK format
-        dfile << (up.sub(0), t);
-        pfile << (up.sub(1), t);
+        # dfile << (up.sub(0), t);
+        # pfile << (up.sub(1), t);
         # Save solutions in xml format
         File(sim_name+ '/up_%d.xml' %tn) << up
 

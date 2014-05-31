@@ -73,11 +73,11 @@ errors_p2 = []
 ######################### MESH SIMULATION #########################
 
 sim_basename = 'mesh/'
-T_total = 10
+T_total = 64
 max_it = 16
 dt = T_total/float(max_it)
 
-m_nums = [1,2,4,8,16]
+m_nums = [4,8,16]
 for i in range(len(m_nums)):
     m_num = m_nums[i]
     sim_name = sim_basename + str(m_num)
