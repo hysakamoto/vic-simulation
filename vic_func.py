@@ -95,7 +95,6 @@ def vic_sim( sim_name, \
     ## Initial conditions
     up_1   = Function(V)         # Displacement-pressure from previous iteration
     u_1, p_1 = split(up_1)       # Function in each subspace to write the functional
-    up_1.vector().array()
     assign (up_1.sub(0), interpolate(u_initial,Pu))
     assign (up_1.sub(1), interpolate(p_initial,Pp))
 
@@ -126,8 +125,8 @@ def vic_sim( sim_name, \
     psi = (mu/2.0)*(Ic - 3) - mu*ln(J) + (lmbda/2.0)*(ln(J))**2
 
     # Strain energy density (nearly incompressible neo-hookean model)
-    kappa = mu*10
-    C_hat = (IIIc)**(-1.0/3.0)*C
+    # kappa = mu*10
+    # C_hat = (IIIc)**(-1.0/3.0)*C
     # psi   = mu/2.0*(tr(C_hat)-3) + 1.0/2.0*kappa*ln(J)**2.0
 
     # PK1 stress tensor
@@ -185,12 +184,12 @@ def vic_sim( sim_name, \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         - (source*q)*dx \
         + (inner(body_force,w))*dx \
-        - (inner(tbar_top,w))*ds_neumann(0) \
-        - (inner(tbar_right,w))*ds_neumann(2) \
-        - (inner(tbar_back,w))*ds_neumann(4) \
-        + (inner(gbar_top,q))*ds_neumann(0)\
-        + (inner(gbar_right,q))*ds_neumann(2) \
-        + (inner(gbar_back,q))*ds_neumann(4) \
+        - (dot(tbar_top,w))*ds_neumann(0) \
+        - (dot(tbar_right,w))*ds_neumann(2) \
+        - (dot(tbar_back,w))*ds_neumann(4) \
+        + (gbar_top*q)*ds_neumann(0)\
+        + (gbar_right*q)*ds_neumann(2) \
+        + (gbar_back*q)*ds_neumann(4) \
 
         # - (inner(tbar_left,w))*ds_neumann(3) \
         # - (inner(tbar_front,w))*ds_neumann(5) \

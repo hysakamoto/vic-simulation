@@ -62,32 +62,32 @@ errors_p2 = []
 
 ######################### TEST SIMULATION #########################
 
-# sim_name = 'result/'
-# max_m_nums = 16
-# n_err_comp = max_m_nums/m_num+1
-# u_max, Eus, Eps, Eus2, Eps2\
-#     = vic_func.vic_sim( sim_name, 
-#                         m_num, p_order, dt, T_total, max_it, omega,
-#                         Ee, nu, gamma, tau, perm,
-#                         top_trac, body_force,
-#                         n_err_comp)
+sim_name = 'result/'
+max_m_nums = 16
+n_err_comp = max_m_nums/m_num+1
+u_max, Eus, Eps, Eus2, Eps2\
+    = vic_func.vic_sim( sim_name, 
+                        m_num, p_order, dt, T_total, max_it, omega,
+                        Ee, nu, gamma, tau, perm,
+                        top_trac, body_force,
+                        n_err_comp)
 
 ######################### MESH SIMULATION #########################
 
-sim_basename = base_base_name + 'mesh/'
-T_total = 10
-max_it = 64
-dt = T_total/float(max_it)
+# sim_basename = base_base_name + 'mesh/'
+# T_total = 10
+# max_it = 64
+# dt = T_total/float(max_it)
 
-m_nums = [1,2,4,8,16]
-for i in range(len(m_nums)):
-    m_num = m_nums[i]
-    sim_name = sim_basename + str(m_num)
-    u_max, Eus, Eps, Eus2, Eps2  \
-        = vic_func.vic_sim( sim_name, 
-                            m_num, p_order, dt, T_total, max_it, omega,
-                            Ee, nu, gamma, tau, perm,
-                            top_trac, body_force, 1 )
+# m_nums = [1,2,4,8,16]
+# for i in range(len(m_nums)):
+#     m_num = m_nums[i]
+#     sim_name = sim_basename + str(m_num)
+#     u_max, Eus, Eps, Eus2, Eps2  \
+#         = vic_func.vic_sim( sim_name, 
+#                             m_num, p_order, dt, T_total, max_it, omega,
+#                             Ee, nu, gamma, tau, perm,
+#                             top_trac, body_force, 1 )
 
 
 ######################### TIME SIMULATION #########################
