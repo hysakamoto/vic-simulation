@@ -31,8 +31,8 @@ ffc_options = {"optimize": True, \
 def vic_sim( sim_name, \
              m_num, p_order, dt, T_total, max_it, \
              omega, Ee, nu, gamma, tau, perm, \
-             top_trac, body_force,
-             n_err_comp):
+             top_trac, body_force \
+             ):
     """ 
     run the VIC simulation
     """

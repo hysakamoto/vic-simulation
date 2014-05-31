@@ -1,0 +1,27 @@
+#!/bin/bash
+#----------------------------------------------------
+# Example SLURM job script to run multiple mpi
+# applications within one batch job on TACC's
+# Stampede system.
+#----------------------------------------------------
+#SBATCH -J bk_newton     # Job name
+#SBATCH -o bk_newton.o%j # Name of stdout output file(%j expands to jobId)
+#SBATCH -e bk_newton.o%j # Name of stderr output file(%j expands to jobId)
+#SBATCH -p normal          # Submit to the 'normal' or 'development' queue
+#SBATCH -N 1                    # Total number of nodes requested (16 cores/node)
+#SBATCH -n 16                   # Total number of mpi tasks requested
+#SBATCH -t 02:00:00             # Run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A -One-Cell-as-a-Mixtu  # Allocation name to charge job against
+
+export WORKDIR=.
+cd $WORKDIR
+
+#DO NOT use tacc_affinity with multiple MPI applications
+# within the same batch script!
+# If running in a hybrid mode, please contact the help desk
+# for support.
+
+# Launch each MPI application using the "-o" and "-n" flags
+# in the background
+#Application 1
+ibrun -o 0 -n 16 python vic_main.py
