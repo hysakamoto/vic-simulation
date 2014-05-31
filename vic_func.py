@@ -177,9 +177,7 @@ def vic_sim( sim_name, \
     omega_const = Constant(omega)
     v_1 = Function(Pu)
     assign (v_1, interpolate(v_initial,Pu))
-
-    # v_1.interpolate(Constant((0.0, 0.0, 0.0)))
-    v = ((u-u_1)/dt_const)
+    v = ((u-u_1)/dt_const - (1.0-omega_const)*v_1)/omega_const
 
     # Compute residual
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
@@ -335,19 +333,12 @@ def vic_sim( sim_name, \
         solver = NonlinearVariationalSolver(problem)
 
         # Calculate the new value of v_1 point-wise
-        # pdb.set_trace()
-        # u_tent = up.sub(0,deepcopy=True).vector().array()
-        # u_1_tent = up_1.sub(0,deepcopy=True).vector().array()
-        # v_1_tent = v_1.vector().array()
-        # v_1.vector()[:] = ((u_tent-u_1_tent)/dt - (1-omega)*v_1_tent)/omega
-
         u_tent = up.sub(0,deepcopy=True).vector().get_local()
         u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
         v_1_tent = v_1.vector().get_local()
-        v_1.vector().set_local(((u_tent-u_1_tent)/dt))
+        v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
 
         # v_1  = project(v,Pu)
-        # up_1.vector()[:] = up.vector()
         up_1.assign(up)
         # H_1 = project(H, HS)
         # S_1 = project(S, HS)
