@@ -94,12 +94,19 @@ with open(base_name + '/L2_errros.py', 'w') as f:
     f.write('Eps_time = ' + str(Eps_time)+'\n')
 
 
-# print (np.log(Eus1[0])-np.log(Eus1[3]))/(np.log(max_its[0])-np.log(max_its[3]))
-# print (np.log(Eps1[0])-np.log(Eps1[4]))/(np.log(max_its[0])-np.log(max_its[4]))
+print 'Mesh Displacement L2 error convergence rate = ', \
+    (np.log(Eus_mesh[0])-np.log(Eus_mesh[5]))/\
+    (np.log(mesh_refinement[0])-np.log(mesh_refinement[5]))
+print 'Mesh Pressure L2 error convergence rate = ', \
+    (np.log(Eps_mesh[0])-np.log(Eps_mesh[5]))/\
+    (np.log(mesh_refinement[0])-np.log(mesh_refinement[5]))
 
-
-# print (np.log(Eus2[0])-np.log(Eus2[5]))/(np.log(m_nums[0])-np.log(m_nums[5]))
-# print (np.log(Eps2[0])-np.log(Eps2[4]))/(np.log(m_nums[0])-np.log(m_nums[4]))
+print 'Time Displacement L2 error convergence rate = ', \
+    (np.log(Eus_time[0])-np.log(Eus_time[6]))/\
+    (np.log(max_iterations[0])-np.log(max_iterations[6]))
+print 'Time Pressure L2 error convergence rate = ', \
+    (np.log(Eps_time[0])-np.log(Eps_time[6]))/\
+    (np.log(max_iterations[0])-np.log(max_iterations[6]))
 
 
 # A = [0.016984484000945266, 0.003620986790733252, 0.0009605201341572476, 0.001231537706287947, 0.0013764656561359874, 0.001415489361134992, 0.0014254100429035416]
