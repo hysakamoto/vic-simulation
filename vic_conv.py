@@ -1,8 +1,9 @@
 from dolfin import *
-from manufactured_solutions import manufactured_solutions
+from error_calculations import errorCalc
+
+# mesh-time
 
 base_name = 'bkn/'
-
 
 # material parameters
 mat_params = {'gamma'      : 0.0, 
@@ -23,248 +24,82 @@ sim_params = {'omega'   : 1.0,   # forward:0, backward: 1, C-N: 0.5
           }
 
 
-# Elasticity parameters
-mu = mat_params['Ee']/(2*(1 + mat_params['nu']))
-lmbda = mat_params['Ee']*mat_params['nu'] \
-        /((1 + mat_params['nu'])*(1 - 2*mat_params['nu']))
-
-# get manufactured solutions
-[u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
-    = manufactured_solutions(0.0, mat_params['perm'], mu, lmbda)
-
-
-
 ## convergence parameters
-# mesh_refinement = [1,2,4,8,16,32]
-mesh_refinement = [16,32]
+mesh_refinement = [1,2,4,8,16,32]
 max_iterations = [1,2,4,8,16,32,64]
 
 max_mer = 32
 max_mit = 64
 
+# errors
+Eus_mesh = []
+Eps_mesh = []
+Eus_time = []
+Eps_time = []
 
 # mesh convergence
+print 'mesh convergence analysis'
 sim_params['m_num'] = max_mer
 sim_params['max_it'] = max_mit
 for mer in mesh_refinement:
+    print mer
+
     sim_params['m_num'] = mer
-    runsim(base_name, mat_params, sim_params)
+    Eu, Ep = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
+
+    Eus_mesh.append(Eu)
+    Eps_mesh.append(Ep)
 
 # time convergence
+print 'time step convergence analysis'
 sim_params['m_num'] = max_mer
 sim_params['max_it'] = max_mit
 for mit in max_iterations:
+    print mit
+
     sim_params['max_it'] = mit
-    runsim(base_name, mat_params, sim_params)
+    Eu, Ep = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
+
+    Eus_time.append(Eu)
+    Eps_time.append(Ep)
 
 # set the parameters back
 sim_params['m_num'] = max_mer
 sim_params['max_it'] = max_mit
 
 
-
-
-##### TIME-STEP CONVERGENCE #####
-print "time-step convergence analysis"
-Eus1 = []
-Eps1 = []
-
-##  Finest Function Spaces
-mesh_e = UnitCubeMesh(32,32,32)
-Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
-Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
-V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
-
-
-T_total = 10.0
-max_its = [1, 2,4,8,16,32,64]
-max_it_num = max(max_its)
-sim_basename = base_base_name+ '/' +'time/'
-for i in range(len(max_its)):
-    print i
-
-    max_it = max_its[i]
-    n_err_comp = max_it_num/max_it # number of error computation per time step
-    dt = T_total/float(max_it)
-    sim_name = sim_basename + str(max_it)
-
-    # load mesh
-    # mesh = Mesh(sim_name+'/mesh.xdmf')
-    m_num = 32
-    mesh = UnitCubeMesh(m_num, m_num, m_num)
-    File(sim_name+'/mesh.xdmf') << mesh
-
-
-    ##  Function Spaces
-    Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
-    Pp = FunctionSpace(mesh, "Lagrange", p_order)        # space for pressure
-    V  = MixedFunctionSpace([Pu,Pp])                    # mixed space
-
-    Eu = 0.0
-    Ep = 0.0
-    t = 0.0
-    for tn in range(1,max_it+1):
-
-        # load solutions
-        up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
-        u_1 = up_1.sub(0)
-        p_1 = up_1.sub(1)
-        
-        up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
-        u_2 = up_2.sub(0)
-        p_2 = up_2.sub(1)
-
-        t1 = Constant(t)
-        t2 = Constant(t+dt)
-
-        # n_err_comp = 2
-        ddt = dt/(n_err_comp)
-
-        for j in range(n_err_comp):
-
-            t += ddt
-        
-            # set time
-            u_e.t = t-ddt/2.0
-            p_e.t = t-ddt/2.0
-
-            t_const = Constant(t-ddt/2.0)
-
-            uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
-            ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
-
-            ### Error against exact solutions
-            error_u = (uh-u_e)**2*dx
-            Eu += (assemble(error_u))*ddt
-
-            error_p = (ph-p_e)**2*dx
-            Ep += (assemble(error_p))*ddt
-
-    Eus1.append(sqrt(Eu))
-    Eps1.append(sqrt(Ep))
-
-
-print Eus1
-print Eps1
-
-
-##### MESH CONVERGENCE #####
-print "mesh convergence analysis"
-
-##  Finest Function Spaces
-mesh_e = UnitCubeMesh(32,32,32)
-Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
-Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
-V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
-
-### Run Simulation
-u_max = []
-Eus2 = []
-Eps2 = []
-m_nums = [1,2,4,8,16,32]
-sim_basename = base_base_name+'/' + 'mesh/'
-
-# L2 norm of solutions
-L2u = 0.0
-L2p = 0.0
-
-T_total = 10.0
-max_it = 64
-dt = T_total/float(max_it)
-
-for i in range(len(m_nums)):
-    print i
-    
-    m_num = m_nums[i]
-    sim_name = sim_basename + str(m_num)
-
-    # load mesh
-    # mesh = Mesh(sim_name+'/mesh.xdmf')
-    mesh = UnitCubeMesh(m_num, m_num, m_num)
-    File(sim_name+'/mesh.xdmf') << mesh
-
-    ##  Function Spaces
-    Pu = VectorFunctionSpace(mesh, "Lagrange", p_order)  # space for displacements
-    Pp = FunctionSpace(mesh, "Lagrange", p_order)        # space for pressure
-    V  = MixedFunctionSpace([Pu,Pp])                    # mixed space
-
-    Ep = 0.0
-    Eu = 0.0
-
-    t = dt
-    for tn in range(1, max_it+1):
-
-        # load solutions
-        up = Function(V, sim_name + '/up_%d.xml'%tn)
-        u_tent, p_tent = up.split(deepcopy=True) 
-
-        u_e.t = t
-        p_e.t = t
-
-        # Explicit interpolation of u_e onto the same space as u:
-        u_intp = interpolate(u_tent, Pu_e)
-        u_e_intp = interpolate(u_e, Pu_e)
-        error_u_intp = (u_intp - u_e_intp)**2*dx
-        Eu += (assemble(error_u_intp))*dt
-
-        p_intp = interpolate(p_tent, Pp_e)
-        p_e_intp = interpolate(p_e, Pp_e)
-        error_p_intp = (p_intp - p_e_intp)**2*dx
-        Ep += (assemble(error_p_intp))*dt
-
-        # L2 norm of these
-        if i==0:
-            uesq = u_e_intp**2*dx
-            pesq = p_e_intp**2*dx
-            L2u += (assemble(uesq))*dt
-            L2p += (assemble(pesq))*dt
-
-        t += dt
-
-    Eus2.append(sqrt(Eu))
-    Eps2.append(sqrt(Ep))
-
-print Eus2
-print Eps2
-
-# ##### PLOT RESULTS ######
-
-# time
-relEu1 = [Eus1[i]/L2u for i in range(len(Eus1))]
-relEp1 = [Eps1[i]/L2p for i in range(len(Eus1))]
-
-plt.loglog(max_its,relEu1, '-o')
-plt.loglog(max_its,relEp1, '-o')
-plt.legend(('displacement', 'pressure'))
-plt.savefig(base_base_name + '/'+'timestep-up-conv.jpg')
-plt.show()
+##### PLOT RESULTS ######
 
 # mesh
-relEu2 = [Eus2[i]/L2u for i in range(len(Eus2))]
-relEp2 = [Eps2[i]/L2p for i in range(len(Eus2))]
-
-plt.loglog(m_nums,relEu2,'-o')
-plt.loglog(m_nums,relEp2,'-o')
+plt.loglog(mesh_refinement, Eus_mesh, '-o')
+plt.loglog(mesh_refinement, Eps_mesh, '-o')
 plt.legend(('displacement', 'pressure'))
-plt.savefig(base_base_name + '/' + 'mesh-up-conv.jpg')
+plt.title('mesh refinement vs L2 error')
+plt.savefig(base_name + '/' + 'L2_errors_mesh.jpg')
 plt.show()
 
-with open(base_base_name + '/convergence.txt', 'w') as f:
-    f.write(str(Eus1)+'\n')
-    f.write(str(Eps1)+'\n')
-    f.write(str(Eus2)+'\n')
-    f.write(str(Eps2)+'\n')
+# time
+plt.loglog(max_iterations, Eus_time, '-o')
+plt.loglog(max_iterations, Eps_time, '-o')
+plt.legend(('displacement', 'pressure'))
+plt.title('time steps vs L2 error')
+plt.savefig(base_name + '/' + 'L2_errors_time.jpg')
+plt.show()
 
 
-print (np.log(Eus1[0])-np.log(Eus1[3]))/(np.log(max_its[0])-np.log(max_its[3]))
-print (np.log(Eps1[0])-np.log(Eps1[4]))/(np.log(max_its[0])-np.log(max_its[4]))
+with open(base_name + '/L2_errros.py', 'w') as f:
+    f.write('Eus_mesh = ' + str(Eus_mesh)+'\n')
+    f.write('Eps_mesh = ' + str(Eps_mesh)+'\n')
+    f.write('Eus_time = ' + str(Eus_time)+'\n')
+    f.write('Eps_time = ' + str(Eps_time)+'\n')
 
 
-print (np.log(Eus2[0])-np.log(Eus2[5]))/(np.log(m_nums[0])-np.log(m_nums[5]))
-print (np.log(Eps2[0])-np.log(Eps2[4]))/(np.log(m_nums[0])-np.log(m_nums[4]))
+# print (np.log(Eus1[0])-np.log(Eus1[3]))/(np.log(max_its[0])-np.log(max_its[3]))
+# print (np.log(Eps1[0])-np.log(Eps1[4]))/(np.log(max_its[0])-np.log(max_its[4]))
 
 
-
+# print (np.log(Eus2[0])-np.log(Eus2[5]))/(np.log(m_nums[0])-np.log(m_nums[5]))
+# print (np.log(Eps2[0])-np.log(Eps2[4]))/(np.log(m_nums[0])-np.log(m_nums[4]))
 
 
 # A = [0.016984484000945266, 0.003620986790733252, 0.0009605201341572476, 0.001231537706287947, 0.0013764656561359874, 0.001415489361134992, 0.0014254100429035416]

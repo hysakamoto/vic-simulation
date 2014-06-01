@@ -41,7 +41,7 @@ execfile("exact_solutions.py")
 f = open('manufactured_solutions.py', 'w')
 
 f.write('from dolfin import *\n\n')
-f.write('def manufactured_solutions(dt, k, mu, lm):\n\n')
+f.write('def getManuSolutions(dt, k, mu, lm):\n\n')
 
 for i in range(4):
     U[i] = U[i].translate(None, " ")

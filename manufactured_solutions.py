@@ -1,6 +1,6 @@
 from dolfin import *
 
-def manufactured_solutions(dt, k, mu, lm):
+def getManuSolutions(dt, k, mu, lm):
 
     u_e = Expression(("0.0","0.0","(((x[2]-(((x[2]-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))/(((x[0]*x[1])*(exp((t/20.0))-1.0))+1.0)))-((x[0]*x[1])*x[2]))+(((x[0]*x[1])*x[2])*exp((t/20.0))))"), t=dt)
 
