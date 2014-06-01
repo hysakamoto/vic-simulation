@@ -1,5 +1,9 @@
-from run_simulation import runsim
+## Test Simulation
 
+import sys
+sys.path.append("src") 
+
+from run_simulation import runSim
 
 base_name = 'test/'
 
@@ -9,7 +13,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 if rank == 0:
     print "Generating manufactured solutions from MATLAB output..."
-    execfile("convert_equations.py")
+    execfile("src/convert_equations.py")
 comm.barrier()
 
 # material parameters
@@ -37,5 +41,5 @@ sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5
 sim_params['m_num'] = 8
 sim_params['max_it'] = 10
 
-runsim(base_name, mat_params, sim_params)
+runSim(base_name, mat_params, sim_params)
 

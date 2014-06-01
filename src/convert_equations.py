@@ -1,3 +1,6 @@
+## Convert the MATLAB manufactured solutions to Python manufactured solutions.
+## Caution: this script is supposed to be called from ../ directory!
+
 import ast, _ast
 import re
 
@@ -33,12 +36,11 @@ def rec(n):
 
 directions = ["top", "bottom", "right", "left", "back", "front"]
 
-
 #### Exact Solutions from MATLAB ####
-execfile("exact_solutions.py")
+execfile("src/exact_solutions.py")
 
 #### Write in file ####
-f = open('manufactured_solutions.py', 'w')
+f = open('src/manufactured_solutions.py', 'w')
 
 f.write('from dolfin import *\n\n')
 f.write('def getManuSolutions(dt, k, mu, lm):\n\n')

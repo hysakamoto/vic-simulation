@@ -28,7 +28,7 @@ def write_params(sim_name, mat_params, sim_params):
     return 0
 
 
-def runsim( base_name, mat_params, sim_params ):
+def runSim( base_name, mat_params, sim_params ):
 
     sim_name = base_name + str(sim_params['m_num']) \
                + '-' + str(sim_params['max_it']) + '/'

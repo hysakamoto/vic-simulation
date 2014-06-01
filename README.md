@@ -2,38 +2,36 @@
 
 * Mixed variable assignment does not get reflected unless explicitly
   define residual and jacobian at each time step.
-* Backward Euler implemented. 
+* Backward Euler and Crank-Nicolson schemes implemented. 
+* The computation is very large on a fine mesh --> 32\*32\*32 mesh and
+  64 time steps simulation takes ~30min for 16*8 nodes on Stampede.
 
 [FEniCS Q&A](http://fenicsproject.org/qa/)
 
-
 ## Convergence Analysis against Manufactured Solution
 
-* Uniaxial stretch of a box.
-* Stretch is time-dependent and defined by a quadratic function.
 * Poroelastic material with compressible neo-Hookean solid and
   isotropic permeability.
-* Deformation is defined so that there is no (local) volume change.
-* Initial displacement and pressure = 0.
+* The analytical solutions are manufactured using MATLAB and converted
+  to Python (Dolfin) readable script.
+* The analytical solutions are derived in two ways: 1) from current
+  configuration and 2) from initial configuration. The option *2*
+  seems working but not *1* --> why?
 
 ### Computation of the error
 
 1. Solve for **u_h** and p_h at each times step.
 2. Get eacact values for **u** and p.
-3. Compute the (relative) error.
-4. Integrate it over the (initial) domain.
-5. Repeat it for every time step.
-6. Integrate the error over time.
-7. **The integration over space need to be done on the fine mesh!!!**
-8. **The integration over time need to be done on the smallest time step!!!**
-
+3. Compute the L2 error in space.
+4. Compute the L2 error of the error in *3*.
+5. Numerical integration of the errors are done on the finest mesh and
+   on the smallest time step.
 
 ### TODO
 
-1. Check the nonlinear boundary conditions. - read Wood
-2. Implement the nonlinear boundary conditions.
-3. Convergence analysis.
-4. Time- and mesh- convergence.
+1. Convergence analysis in time and apce.
+2. Implementation of H1 error calucation and convergence analysis.
+3. Converence rate in Backward Euler scheme and Crank-Nicholson scheme.
 
 ### Current and Initial Normal Tractions
 

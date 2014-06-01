@@ -1,3 +1,5 @@
+## Error calculations of the vic simulations.
+
 from dolfin import *
 from error_calculations import errorCalc
 
