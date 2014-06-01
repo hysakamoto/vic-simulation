@@ -11,8 +11,7 @@ import newton_solve
 from vic_bcs import *
 import scipy.io
 
-import manufactured_solutions
-# reload(manufactured_solutions)
+from manufactured_solutions import manufactured_solutions
 
 # DEBUG
 # set_log_level(DEBUG) #PROGRESS
@@ -45,7 +44,7 @@ def vic_sim( sim_name, \
 
     # Exact solutions
     [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
-        = manufactured_solutions.manufactured_solutions(dt, perm, mu, lmbda)
+        = manufactured_solutions(dt, perm, mu, lmbda)
 
     
     ## Create mesh and define function space

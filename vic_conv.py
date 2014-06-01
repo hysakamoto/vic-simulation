@@ -1,24 +1,68 @@
 from dolfin import *
 from manufactured_solutions import manufactured_solutions
 
-base_base_name = 'cn'
-p_order = 1
+base_name = 'bkn/'
 
-print "Generating manufactured solutions from MATLAB output..."
-execfile("conveq.py")
 
-T_total = 10.0
-dt      = 1    # time step
-max_it  = int(T_total/dt)
+# material parameters
+mat_params = {'gamma'      : 0.0, 
+              'tau'        : 1.0,
+              'Ee'         : 100.0,
+              'nu'         : 0.25,
+              'perm'       : 1.0,
+              'top_trac'   : (0.0,0.0,0.0),
+              'body_force' : (0.0,0.0,0.0)
+}
 
-# Material parameters
-Ee, nu = 100.0, 0.25
-mu, lmbda = Constant(Ee/(2*(1 + nu))), Constant(Ee*nu/((1 + nu)*(1 - 2*nu)))
-perm    = 1.0
+# simulation parameters
+sim_params = {'omega'   : 1.0,   # forward:0, backward: 1, C-N: 0.5 
+              'T_total' : 10.0,
+              'max_it'  : 64,
+              'm_num'   : 32,
+              'p_order' : 1
+          }
+
+
+# Elasticity parameters
+mu = mat_params['Ee']/(2*(1 + mat_params['nu']))
+lmbda = mat_params['Ee']*mat_params['nu'] \
+        /((1 + mat_params['nu'])*(1 - 2*mat_params['nu']))
 
 # get manufactured solutions
 [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
-    = manufactured_solutions(0.0, perm, mu, lmbda)
+    = manufactured_solutions(0.0, mat_params['perm'], mu, lmbda)
+
+
+
+## convergence parameters
+# mesh_refinement = [1,2,4,8,16,32]
+mesh_refinement = [16,32]
+max_iterations = [1,2,4,8,16,32,64]
+
+max_mer = 32
+max_mit = 64
+
+
+# mesh convergence
+sim_params['m_num'] = max_mer
+sim_params['max_it'] = max_mit
+for mer in mesh_refinement:
+    sim_params['m_num'] = mer
+    runsim(base_name, mat_params, sim_params)
+
+# time convergence
+sim_params['m_num'] = max_mer
+sim_params['max_it'] = max_mit
+for mit in max_iterations:
+    sim_params['max_it'] = mit
+    runsim(base_name, mat_params, sim_params)
+
+# set the parameters back
+sim_params['m_num'] = max_mer
+sim_params['max_it'] = max_mit
+
+
+
 
 ##### TIME-STEP CONVERGENCE #####
 print "time-step convergence analysis"

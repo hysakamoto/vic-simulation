@@ -33,7 +33,15 @@ def runsim( base_name, mat_params, sim_params ):
     sim_name = base_name + str(sim_params['m_num']) \
                + '-' + str(sim_params['max_it']) + '/'
 
-    exist = write_params(sim_name, mat_params, sim_params)
+    # only the rank-0 process checks the starting condition
+    from mpi4py import MPI
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    if rank==0:
+        exist = write_params(sim_name, mat_params, sim_params)
+    else:
+        exist = None
+    exist = comm.bcast(exist, root=0)
 
     # if the parameter file is already created, don't run the simulation
     if exist == -1:
