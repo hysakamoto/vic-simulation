@@ -235,60 +235,12 @@ def vic_sim( sim_name, \
     # File(sim_name+'/mesh.xdmf') << mesh
 
     ### Run Simulation
-    u_max = []
-    Eus = []
-    Eps = []
-    Eus2 = []
-    Eps2 = []
     while tn<max_it:
         print 'time = ', (t+dt)
 
         # solve
         solver.solve()
-
-        Eu = 0
-        Ep = 0
-
-        Eus.append(Eu)
-        Eps.append(Ep)
-
-
-        # ### Error against exact solutions
-        # error_u = (u-u_e)**2*dx
-        # as_tmp = assemble(error_u)
-        # # if as_tmp < 0.0:
-        # #     as_tmp = 0.0
-        # Eu = sqrt(as_tmp)
-
-        # error_p = (p-p_e)**2*dx
-        # as_tmp = assemble(error_p)
-        # # if as_tmp < 0.0:
-        # #     as_tmp = 0.0
-        # Ep = sqrt(as_tmp)
-
-        # Eus.append(Eu)
-        # Eps.append(Ep)
-
-        # # pdb.set_trace()
-        # u_tent, p_tent = up.split(deepcopy=True) 
-
-        # # Explicit interpolation of u_e onto the same space as u:
-        # u_intp = interpolate(u_tent, Pu_e)
-        # u_e_intp = interpolate(u_e, Pu_e)
-        # error_u_intp = (u_intp - u_e_intp)**2*dx
-        # Eu2 = sqrt(assemble(error_u_intp))
-
-        # p_intp = interpolate(p_tent, Pp_e)
-        # p_e_intp = interpolate(p_e, Pp_e)
-        # error_p_intp = (p_intp - p_e_intp)**2*dx
-        # Ep2 = sqrt(assemble(error_p_intp))
-
-        # Eus2.append(Eu2)
-        # Eps2.append(Ep2)
         
-
-        # u_max.append( np.max(u_tent.vector().array()))
-
         # update
         t    += dt
         tn   += 1
@@ -342,7 +294,6 @@ def vic_sim( sim_name, \
         # H_1 = project(H, HS)
         # S_1 = project(S, HS)
 
-
         # Save solution in VTK format
         dfile << (up.sub(0), t);
         pfile << (up.sub(1), t);
@@ -351,8 +302,7 @@ def vic_sim( sim_name, \
 
         # plot(p_1, title = "pressure", axes=True, interactive = True)
 
-
-    return u_max, Eus, Eps, Eus2, Eps2
+    return 0
 
 
 

@@ -26,7 +26,7 @@ Eus1 = []
 Eps1 = []
 
 ##  Finest Function Spaces
-mesh_e = UnitCubeMesh(16,16,16)
+mesh_e = UnitCubeMesh(32,32,32)
 Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
 Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
 V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
@@ -46,7 +46,7 @@ for i in range(len(max_its)):
 
     # load mesh
     # mesh = Mesh(sim_name+'/mesh.xdmf')
-    m_num = 16
+    m_num = 32
     mesh = UnitCubeMesh(m_num, m_num, m_num)
     File(sim_name+'/mesh.xdmf') << mesh
 
@@ -96,19 +96,19 @@ for i in range(len(max_its)):
             error_p = (ph-p_e)**2*dx
             Ep += (assemble(error_p))*ddt
 
-            
-    Eu = Eu
-    Ep = Ep
-
     Eus1.append(sqrt(Eu))
     Eps1.append(sqrt(Ep))
+
+
+print Eus1
+print Eps1
 
 
 ##### MESH CONVERGENCE #####
 print "mesh convergence analysis"
 
 ##  Finest Function Spaces
-mesh_e = UnitCubeMesh(16,16,16)
+mesh_e = UnitCubeMesh(32,32,32)
 Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
 Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
 V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
@@ -117,7 +117,7 @@ V_e  = MixedFunctionSpace([Pu_e,Pp_e])                    # mixed space
 u_max = []
 Eus2 = []
 Eps2 = []
-m_nums = [1,2,4,8,16]
+m_nums = [1,2,4,8,16,32]
 sim_basename = base_base_name+'/' + 'mesh/'
 
 # L2 norm of solutions
@@ -180,6 +180,9 @@ for i in range(len(m_nums)):
     Eus2.append(sqrt(Eu))
     Eps2.append(sqrt(Ep))
 
+print Eus2
+print Eps2
+
 # ##### PLOT RESULTS ######
 
 # time
@@ -209,21 +212,18 @@ with open(base_base_name + '/convergence.txt', 'w') as f:
     f.write(str(Eps2)+'\n')
 
 
-print (np.log(Eus1[0])-np.log(Eus1[2]))/(np.log(max_its[0])-np.log(max_its[2]))
-print (np.log(Eps1[0])-np.log(Eps1[3]))/(np.log(max_its[0])-np.log(max_its[3]))
+print (np.log(Eus1[0])-np.log(Eus1[3]))/(np.log(max_its[0])-np.log(max_its[3]))
+print (np.log(Eps1[0])-np.log(Eps1[4]))/(np.log(max_its[0])-np.log(max_its[4]))
 
 
-print (np.log(Eus2[0])-np.log(Eus2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))
-print (np.log(Eps2[0])-np.log(Eps2[-1]))/(np.log(m_nums[0])-np.log(m_nums[-1]))
-
-
-
+print (np.log(Eus2[0])-np.log(Eus2[5]))/(np.log(m_nums[0])-np.log(m_nums[5]))
+print (np.log(Eps2[0])-np.log(Eps2[4]))/(np.log(m_nums[0])-np.log(m_nums[4]))
 
 
 
 
 
-A = [0.016984484000945266, 0.003620986790733252, 0.0009605201341572476, 0.001231537706287947, 0.0013764656561359874, 0.001415489361134992, 0.0014254100429035416]
-B = [0.5022122432696464, 0.11371038131558306, 0.030826510023513484, 0.009615154207164462, 0.004518699535452111, 0.003383338520246388, 0.0031324720533711745]
-C = [0.08819447320545222, 0.04710652215528491, 0.016930969720366555, 0.004920670105373137, 0.0014468970724907848]
-D = [0.1920775348159219, 0.0969587566721823, 0.033902293135667554, 0.009841815798289924, 0.0029976417772129976]
+# A = [0.016984484000945266, 0.003620986790733252, 0.0009605201341572476, 0.001231537706287947, 0.0013764656561359874, 0.001415489361134992, 0.0014254100429035416]
+# B = [0.5022122432696464, 0.11371038131558306, 0.030826510023513484, 0.009615154207164462, 0.004518699535452111, 0.003383338520246388, 0.0031324720533711745]
+# C = [0.08819447320545222, 0.04710652215528491, 0.016930969720366555, 0.004920670105373137, 0.0014468970724907848]
+# D = [0.1920775348159219, 0.0969587566721823, 0.033902293135667554, 0.009841815798289924, 0.0029976417772129976]

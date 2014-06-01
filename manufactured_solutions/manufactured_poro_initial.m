@@ -7,13 +7,10 @@ syms k
 K = eye(3)*k;
 
 % kinematics
-% u=[ 0,0,Z0 - (Z0 - X0*Y0*Z0 + X0*Y0*Z0*exp(t/20))/(X0*Y0*(exp(t/20) - 1) + 1) - X0*Y0*Z0 + X0*Y0*Z0*exp(t/20)];
-% p = X0*Y0*sin((pi*t)/10)*(Z0 - X0*Y0*Z0 + X0*Y0*Z0*exp(t/20))/100;
-u = [-(X0/2)^(2)*sin(t/10*pi), -(Y0/2)^(2)*sin(t/10*pi), Z0^2*sin(t/10*pi)];
-p = sin(Z0*t/10*pi);
-
-% u = [-t/20*X0, -t/20*Y0, t/4*Z0];
-% p = X0*Y0*Z0*sin(t/10*pi);
+u=[ 0,0,Z0 - (Z0 - X0*Y0*Z0 + X0*Y0*Z0*exp(t/20))/(X0*Y0*(exp(t/20) - 1) + 1) - X0*Y0*Z0 + X0*Y0*Z0*exp(t/20)];
+p = X0*Y0*sin((pi*t)/10)*(Z0 - X0*Y0*Z0 + X0*Y0*Z0*exp(t/20))/100;
+% u = [-(X0/2)^(2)*sin(t/10*pi), -(Y0/2)^(2)*sin(t/10*pi), Z0^2*sin(t/10*pi)];
+% p = sin(t/10*pi)*Z0^2;
 
 v = diff(u, t);
 x = X0+u(1);
