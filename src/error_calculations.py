@@ -33,7 +33,6 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     Eu4 = 0.0
     Ep4 = 0.0
 
-    
     ##  Finest Function Spaces
     mesh_e = UnitCubeMesh(max_mer,max_mer,max_mer)
     Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", sim_params['p_order'])
@@ -53,7 +52,7 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     V  = MixedFunctionSpace([Pu,Pp])
 
     t = 0.0
-    for tn in range(1, sim_params['max_it']/16+1):
+    for tn in range(1, sim_params['max_it']+1):
 
         print 'timestep #: ', tn
 
@@ -90,10 +89,8 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             ### L2 norms
             error_u = (uh-u_e)**2*dx
             error_p = (ph-p_e)**2*dx
-            ttt = ttime()
             Eu += (assemble(error_u))*ddt
             Ep += (assemble(error_p))*ddt
-            print ttime()-ttt
 
                         
             ### H1 seminorms
@@ -107,10 +104,8 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             #     + inner(grad(point_error_u[1]), grad(point_error_u[1]))*dx\
             #     + inner(grad(point_error_u[2]), grad(point_error_u[2]))*dx
             # H1_error_p = inner(grad(point_error_p), grad(point_error_p))*dx
-            # ttt = ttime()
             # Eu2 += assemble(H1_error_u, mesh=mesh_e)*ddt
             # Ep2 += assemble(H1_error_p, mesh=mesh_e)*ddt
-            # print ttime()-ttt
 
             # ####### Using errornorm
 
@@ -119,21 +114,17 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             # Ep2 += errornorm(p_e, p_h, norm_type='L2', degree_rise=0)**2
 
             ### H1 norm by dolfin function with projection
-            ttt=ttime()
             u_h = project(uh, Pu)
             p_h = project(ph, Pp)
             Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2*ddt
             Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2*ddt
-            print ttime()-ttt
 
             ### H1 norm by direct vector manipulation (NOT WORKING)
-            # ttt = ttime()
             # uph = Function(V)
             # uph.vector()[:] = (up_2.vector().array()-up_1.vector().array())/(t_2-t_1)*(t-t_1) + up_1.vector().array()
             # pdb.set_trace()
             # Eu4 = errornorm(u_e, uph.sub(0), norm_type='H1', degree_rise=0)**2*ddt
             # Ep4 = errornorm(p_e, uph.sub(1), norm_type='H1', degree_rise=0)**2*ddt
-            # print ttime()-ttt
         
     Eu = sqrt(Eu)
     Ep = sqrt(Ep)
