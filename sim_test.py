@@ -26,8 +26,6 @@ mat_params = {'gamma'      : 0.0,
               'body_force' : (0.0,0.0,0.0)
 }
 
-
-
 # simulation parameters
 sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5 
               'T_total' : 10.0,

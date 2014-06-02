@@ -4,12 +4,13 @@
 
 # Begin simulation
 import pdb
+import numpy as np
+import scipy.io
 
 from dolfin import *
-import numpy as np
+
 import newton_solve
 from vic_bcs import *
-import scipy.io
 
 from manufactured_solutions import getManuSolutions
 
@@ -214,6 +215,7 @@ def vic_sim( sim_name, \
     assign(up, up_1)
     dfile = File(sim_name + "/displacement.pvd");
     pfile = File(sim_name + "/pressure.pvd");
+    dpfile = File(sim_name + "/up.pvd");
     dfile << (up.sub(0),0.0);
     pfile << (up.sub(1),0.0);
     # Save solutions in xml format

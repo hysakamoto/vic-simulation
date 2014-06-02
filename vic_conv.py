@@ -1,5 +1,11 @@
 ## Error calculations of the vic simulations.
 
+import sys
+sys.path.append("src") 
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from dolfin import *
 from error_calculations import errorCalc
 
@@ -39,6 +45,17 @@ Eps_mesh = []
 Eus_time = []
 Eps_time = []
 
+Eus2_mesh = []
+Eps2_mesh = []
+Eus2_time = []
+Eps2_time = []
+
+Eus3_mesh = []
+Eps3_mesh = []
+Eus3_time = []
+Eps3_time = []
+
+
 # mesh convergence
 print 'mesh convergence analysis'
 sim_params['m_num'] = max_mer
@@ -47,10 +64,15 @@ for mer in mesh_refinement:
     print mer
 
     sim_params['m_num'] = mer
-    Eu, Ep = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
+    Eu, Ep, Eu2, Ep2, Eu3, Ep3 \
+        = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
 
     Eus_mesh.append(Eu)
     Eps_mesh.append(Ep)
+    Eus2_mesh.append(Eu2)
+    Eps2_mesh.append(Ep2)
+    Eus3_mesh.append(Eu3)
+    Eps3_mesh.append(Ep3)
 
 # time convergence
 print 'time step convergence analysis'
@@ -60,10 +82,15 @@ for mit in max_iterations:
     print mit
 
     sim_params['max_it'] = mit
-    Eu, Ep = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
+    Eu, Ep, Eu2, Ep2, Eu3, Ep3 \
+        = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
 
     Eus_time.append(Eu)
     Eps_time.append(Ep)
+    Eus2_time.append(Eu2)
+    Eps2_time.append(Ep2)
+    Eus3_time.append(Eu3)
+    Eps3_time.append(Ep3)
 
 # set the parameters back
 sim_params['m_num'] = max_mer
@@ -89,7 +116,7 @@ plt.savefig(base_name + '/' + 'L2_errors_time.jpg')
 plt.show()
 
 
-with open(base_name + '/L2_errros.py', 'w') as f:
+with open(base_name + '/L2_errors.py', 'w') as f:
     f.write('Eus_mesh = ' + str(Eus_mesh)+'\n')
     f.write('Eps_mesh = ' + str(Eps_mesh)+'\n')
     f.write('Eus_time = ' + str(Eus_time)+'\n')

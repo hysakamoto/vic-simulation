@@ -1,6 +1,7 @@
 ## Calculate L2 errors
 
 import os
+import pdb
 
 from dolfin import *
 from manufactured_solutions import getManuSolutions
@@ -25,6 +26,10 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
 
     Eu = 0.0
     Ep = 0.0
+    Eu2 = 0.0
+    Ep2 = 0.0
+    Eu3 = 0.0
+    Ep3 = 0.0
     
     ##  Finest Function Spaces
     mesh_e = UnitCubeMesh(max_mer,max_mer,max_mer)
@@ -49,15 +54,18 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
 
         # load solutions
         up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
-        u_1 = up_1.sub(0)
-        p_1 = up_1.sub(1)
+        u_1 = up_1.sub(0,deepcopy=True)
+        p_1 = up_1.sub(1,deepcopy=True)
 
         up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
-        u_2 = up_2.sub(0)
-        p_2 = up_2.sub(1)
+        u_2 = up_2.sub(0,deepcopy=True)
+        p_2 = up_2.sub(1,deepcopy=True)
 
         t1 = Constant(t)
         t2 = Constant(t+dt)
+
+        t_1 = t
+        t_2 = t+dt
 
         ddt = dt/(n_err_comp)
 
@@ -74,15 +82,46 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
             ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
 
-            ### Error against exact solutions
-            error_u = (uh-u_e)**2*dx
-            Eu += (assemble(error_u))*ddt
+            u_h = Function(Pu)
+            p_h = Function(Pp)
+            u_h.vector()[:] = (u_2.vector().array()-u_1.vector().array())/(t_2-t_1)*(t-t_1) + u_1.vector().array()
+            p_h.vector()[:] = (p_2.vector().array()-p_1.vector().array())/(t_2-t_1)*(t-t_1) + p_1.vector().array()
 
+            pdb.set_trace()
+
+            ### L2 norm
+            error_u = (uh-u_e)**2*dx
             error_p = (ph-p_e)**2*dx
+            Eu += (assemble(error_u))*ddt
             Ep += (assemble(error_p))*ddt
+
+            ### L2 norm by dolfin function
+            Eu2 += errornorm(u_e, u_h, norm_type='L2', degree_rise=0)**2
+            Ep2 += errornorm(p_e, p_h, norm_type='L2', degree_rise=0)**2
+
+            ### H1 norm by dolfin function
+            Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2
+            Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2
+
+            
+
+
+            # ### H1 seminorm
+            # error_u = inner(grad(uh-u_e), grad(uh-u_e))*dx
+            # E6 += assemble(error)*ddt
+            # error_p = inner(grad(uh-u_e), grad(uh-u_e))*dx
+            # E6 += assemble(error)*ddt
+
+            
 
     Eu = sqrt(Eu)
     Ep = sqrt(Ep)
 
-    return Eu, Ep
+    Eu2 = sqrt(Eu2)
+    Ep2 = sqrt(Ep2)
+
+    Eu3 = sqrt(Eu3)
+    Ep3 = sqrt(Ep3)
+
+    return Eu, Ep, Eu2, Ep2, Eu3, Ep3
 
