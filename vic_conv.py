@@ -56,34 +56,41 @@ Eps3_mesh = []
 Eus3_time = []
 Eps3_time = []
 
+Eus4_mesh = []
+Eps4_mesh = []
+Eus4_time = []
+Eps4_time = []
+
 
 # mesh convergence
 print 'mesh convergence analysis'
 sim_params['m_num'] = max_mer
 sim_params['max_it'] = max_mit
 for mer in mesh_refinement:
-    print mer
+    print 'mesh #: ', mer
 
     sim_params['m_num'] = mer
-    Eu, Ep, Eu2, Ep2, Eu3, Ep3 \
+    Eus, Eps\
         = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
 
-    print Eu, Ep, Eu2, Ep2, Eu3, Ep3 
+    print Eus
+    print Eps
 
-    Eus_mesh.append(Eu)
-    Eps_mesh.append(Ep)
-    Eus2_mesh.append(Eu2)
-    Eps2_mesh.append(Ep2)
-    Eus3_mesh.append(Eu3)
-    Eps3_mesh.append(Ep3)
-
+    Eus_mesh.append(Eus[0])
+    Eps_mesh.append(Eps[0])
+    Eus2_mesh.append(Eus[1])
+    Eps2_mesh.append(Eps[1])
+    Eus3_mesh.append(Eus[2])
+    Eps3_mesh.append(Eps[2])
+    Eus4_mesh.append(Eus[3])
+    Eps4_mesh.append(Eps[3])
 
 # time convergence
 print 'time step convergence analysis'
 sim_params['m_num'] = max_mer
 sim_params['max_it'] = max_mit
 for mit in max_iterations:
-    print mit
+    print 'iteration #: ', mit
 
     sim_params['max_it'] = mit
     Eu, Ep, Eu2, Ep2, Eu3, Ep3 \

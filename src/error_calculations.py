@@ -2,6 +2,7 @@
 
 import os
 import pdb
+from time import time as ttime
 
 from dolfin import *
 from manufactured_solutions import getManuSolutions
@@ -29,6 +30,9 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     Ep2 = 0.0
     Eu3 = 0.0
     Ep3 = 0.0
+    Eu4 = 0.0
+    Ep4 = 0.0
+
     
     ##  Finest Function Spaces
     mesh_e = UnitCubeMesh(max_mer,max_mer,max_mer)
@@ -55,12 +59,12 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
 
         # load solutions
         up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
-        u_1 = up_1.sub(0,deepcopy=True)
-        p_1 = up_1.sub(1,deepcopy=True)
+        u_1 = up_1.sub(0)
+        p_1 = up_1.sub(1)
 
         up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
-        u_2 = up_2.sub(0,deepcopy=True)
-        p_2 = up_2.sub(1,deepcopy=True)
+        u_2 = up_2.sub(0)
+        p_2 = up_2.sub(1)
 
         t1 = Constant(t)
         t2 = Constant(t+dt)
@@ -83,49 +87,53 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
             ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
 
-            # u_h = Function(Pu)
-            # p_h = Function(Pp)
-            # u_h.vector()[:] = (u_2.vector().array()-u_1.vector().array())/(t_2-t_1)*(t-t_1) + u_1.vector().array()
-            # p_h.vector()[:] = (p_2.vector().array()-p_1.vector().array())/(t_2-t_1)*(t-t_1) + p_1.vector().array()
-
-            ### L2 norm
+            ### L2 norms
             error_u = (uh-u_e)**2*dx
             error_p = (ph-p_e)**2*dx
+            ttt = ttime()
             Eu += (assemble(error_u))*ddt
             Ep += (assemble(error_p))*ddt
+            print ttime()-ttt
 
+                        
+            ### H1 seminorms
             # set the Expression function space
             # u_e2 = Expression(u_e.cppcode, t=u_e.t, element=Pu_e.ufl_element())
-            # p_e2 = Expression(p_e.cppcode, t=u_e.t, element=Pp_e.ufl_element())
-            # pdb.set_trace()
+            # p_e2 = Expression(p_e.cppcode, t=p_e.t, k=mat_params['perm'], element=Pp_e.ufl_element())
+            # point_error_u = uh-u_e2
+            # point_error_p = ph-p_e2
+            # H1_error_u = \
+            #     inner(grad(point_error_u[0]), grad(point_error_u[0]))*dx\
+            #     + inner(grad(point_error_u[1]), grad(point_error_u[1]))*dx\
+            #     + inner(grad(point_error_u[2]), grad(point_error_u[2]))*dx
+            # H1_error_p = inner(grad(point_error_p), grad(point_error_p))*dx
+            # ttt = ttime()
+            # Eu2 += assemble(H1_error_u, mesh=mesh_e)*ddt
+            # Ep2 += assemble(H1_error_p, mesh=mesh_e)*ddt
+            # print ttime()-ttt
 
-            u_e2 = Expression(("((-(pow(x[0],2.0)*sin(((pi*t)/10.0))))/16.0)","((-(pow(x[1],2.0)*sin(((pi*t)/10.0))))/16.0)","((pow(x[2],2.0)*sin(((pi*t)/10.0)))/4.0)"), t=u_e.t, element=Pu_e.ufl_element())
-            p_e2 = Expression("pow(x[2],2.0)*sin(((pi*t)/10.0))", t=p_e.t, k=mat_params['perm'], element=Pp_e.ufl_element())
-            
-            # set the functionspace of the expressions
-            # u_e.element=Pu_e.ufl_element()
-            # p_e.element=Pp_e.ufl_element()
-
-            point_error_u = uh-u_e2
-            point_error_p = ph-p_e2
-
-            H1_error_u = \
-                inner(grad(point_error_u[0]), grad(point_error_u[0]))*dx\
-                + inner(grad(point_error_u[1]), grad(point_error_u[1]))*dx\
-                + inner(grad(point_error_u[2]), grad(point_error_u[2]))*dx
-            H1_error_p = inner(grad(point_error_p), grad(point_error_p))*dx
-
-            Eu2 += assemble(H1_error_u, mesh=mesh_e)*ddt
-            Ep2 += assemble(H1_error_p, mesh=mesh_e)*ddt
+            # ####### Using errornorm
 
             # ### L2 norm by dolfin function
             # Eu2 += errornorm(u_e, u_h, norm_type='L2', degree_rise=0)**2
             # Ep2 += errornorm(p_e, p_h, norm_type='L2', degree_rise=0)**2
 
-            # ### H1 norm by dolfin function
-            # Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2
-            # Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2
+            ### H1 norm by dolfin function with projection
+            ttt=ttime()
+            u_h = project(uh, Pu)
+            p_h = project(ph, Pp)
+            Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2*ddt
+            Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2*ddt
+            print ttime()-ttt
 
+            ### H1 norm by direct vector manipulation (NOT WORKING)
+            # ttt = ttime()
+            # uph = Function(V)
+            # uph.vector()[:] = (up_2.vector().array()-up_1.vector().array())/(t_2-t_1)*(t-t_1) + up_1.vector().array()
+            # pdb.set_trace()
+            # Eu4 = errornorm(u_e, uph.sub(0), norm_type='H1', degree_rise=0)**2*ddt
+            # Ep4 = errornorm(p_e, uph.sub(1), norm_type='H1', degree_rise=0)**2*ddt
+            # print ttime()-ttt
         
     Eu = sqrt(Eu)
     Ep = sqrt(Ep)
@@ -136,5 +144,8 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     Eu3 = sqrt(Eu3)
     Ep3 = sqrt(Ep3)
 
-    return Eu, Ep, Eu2, Ep2, Eu3, Ep3
+    Eu4 = sqrt(Eu4)
+    Ep4 = sqrt(Ep4)
+
+    return [Eu, Eu2, Eu3, Eu4], [Ep, Ep2, Ep3, Ep4]
 
