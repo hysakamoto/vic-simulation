@@ -11,6 +11,7 @@ from error_calculations import errorCalc
 
 # mesh-time
 
+set_log_level(CRITICAL)
 base_name = 'bkn/'
 
 # material parameters
@@ -67,12 +68,15 @@ for mer in mesh_refinement:
     Eu, Ep, Eu2, Ep2, Eu3, Ep3 \
         = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
 
+    print Eu, Ep, Eu2, Ep2, Eu3, Ep3 
+
     Eus_mesh.append(Eu)
     Eps_mesh.append(Ep)
     Eus2_mesh.append(Eu2)
     Eps2_mesh.append(Ep2)
     Eus3_mesh.append(Eu3)
     Eps3_mesh.append(Ep3)
+
 
 # time convergence
 print 'time step convergence analysis'
@@ -84,6 +88,8 @@ for mit in max_iterations:
     sim_params['max_it'] = mit
     Eu, Ep, Eu2, Ep2, Eu3, Ep3 \
         = errorCalc(base_name, max_mer, max_mit, sim_params, mat_params)
+
+    print Eu, Ep, Eu2, Ep2, Eu3, Ep3 
 
     Eus_time.append(Eu)
     Eps_time.append(Ep)

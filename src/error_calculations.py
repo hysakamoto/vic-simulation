@@ -16,7 +16,6 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
         print 'The directory does not exist!'
         return 
 
-
     # Get manufactured solutions
     mu = mat_params['Ee']/(2*(1 + mat_params['nu']))
     lmbda = mat_params['Ee']*mat_params['nu'] \
@@ -50,7 +49,9 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     V  = MixedFunctionSpace([Pu,Pp])
 
     t = 0.0
-    for tn in range(1, sim_params['max_it']+1):
+    for tn in range(1, sim_params['max_it']/16+1):
+
+        print 'timestep #: ', tn
 
         # load solutions
         up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
@@ -82,12 +83,10 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
             ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
 
-            u_h = Function(Pu)
-            p_h = Function(Pp)
-            u_h.vector()[:] = (u_2.vector().array()-u_1.vector().array())/(t_2-t_1)*(t-t_1) + u_1.vector().array()
-            p_h.vector()[:] = (p_2.vector().array()-p_1.vector().array())/(t_2-t_1)*(t-t_1) + p_1.vector().array()
-
-            pdb.set_trace()
+            # u_h = Function(Pu)
+            # p_h = Function(Pp)
+            # u_h.vector()[:] = (u_2.vector().array()-u_1.vector().array())/(t_2-t_1)*(t-t_1) + u_1.vector().array()
+            # p_h.vector()[:] = (p_2.vector().array()-p_1.vector().array())/(t_2-t_1)*(t-t_1) + p_1.vector().array()
 
             ### L2 norm
             error_u = (uh-u_e)**2*dx
@@ -95,25 +94,39 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             Eu += (assemble(error_u))*ddt
             Ep += (assemble(error_p))*ddt
 
-            ### L2 norm by dolfin function
-            Eu2 += errornorm(u_e, u_h, norm_type='L2', degree_rise=0)**2
-            Ep2 += errornorm(p_e, p_h, norm_type='L2', degree_rise=0)**2
+            # set the Expression function space
+            # u_e2 = Expression(u_e.cppcode, t=u_e.t, element=Pu_e.ufl_element())
+            # p_e2 = Expression(p_e.cppcode, t=u_e.t, element=Pp_e.ufl_element())
+            # pdb.set_trace()
 
-            ### H1 norm by dolfin function
-            Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2
-            Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2
-
+            u_e2 = Expression(("((-(pow(x[0],2.0)*sin(((pi*t)/10.0))))/16.0)","((-(pow(x[1],2.0)*sin(((pi*t)/10.0))))/16.0)","((pow(x[2],2.0)*sin(((pi*t)/10.0)))/4.0)"), t=u_e.t, element=Pu_e.ufl_element())
+            p_e2 = Expression("pow(x[2],2.0)*sin(((pi*t)/10.0))", t=p_e.t, k=mat_params['perm'], element=Pp_e.ufl_element())
             
+            # set the functionspace of the expressions
+            # u_e.element=Pu_e.ufl_element()
+            # p_e.element=Pp_e.ufl_element()
 
+            point_error_u = uh-u_e2
+            point_error_p = ph-p_e2
 
-            # ### H1 seminorm
-            # error_u = inner(grad(uh-u_e), grad(uh-u_e))*dx
-            # E6 += assemble(error)*ddt
-            # error_p = inner(grad(uh-u_e), grad(uh-u_e))*dx
-            # E6 += assemble(error)*ddt
+            H1_error_u = \
+                inner(grad(point_error_u[0]), grad(point_error_u[0]))*dx\
+                + inner(grad(point_error_u[1]), grad(point_error_u[1]))*dx\
+                + inner(grad(point_error_u[2]), grad(point_error_u[2]))*dx
+            H1_error_p = inner(grad(point_error_p), grad(point_error_p))*dx
 
-            
+            Eu2 += assemble(H1_error_u, mesh=mesh_e)*ddt
+            Ep2 += assemble(H1_error_p, mesh=mesh_e)*ddt
 
+            # ### L2 norm by dolfin function
+            # Eu2 += errornorm(u_e, u_h, norm_type='L2', degree_rise=0)**2
+            # Ep2 += errornorm(p_e, p_h, norm_type='L2', degree_rise=0)**2
+
+            # ### H1 norm by dolfin function
+            # Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2
+            # Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2
+
+        
     Eu = sqrt(Eu)
     Ep = sqrt(Ep)
 
