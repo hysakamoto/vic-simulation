@@ -6,7 +6,7 @@ from time import time as ttime
 
 from dolfin import *
 from manufactured_solutions import getManuSolutions
-
+from cui_toolbar import toolbar
 
 def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
 
@@ -52,9 +52,8 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     V  = MixedFunctionSpace([Pu,Pp])
 
     t = 0.0
+    tb = toolbar(30)
     for tn in range(1, sim_params['max_it']+1):
-
-        print 'timestep #: ', tn
 
         # load solutions
         up_1 = Function(V, sim_name + '/up_%d.xml'%(tn-1))
@@ -75,8 +74,9 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
 
         # error computations within a timestep
         for j in range(n_err_comp):
-
             t += ddt
+            tb.update(t/sim_params['T_total'])
+
 
             # set time (use a half-point for a better integration)
             u_e.t = t-ddt/2.0

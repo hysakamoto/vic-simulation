@@ -46,7 +46,6 @@ def vic_sim( sim_name, \
     # Exact solutions
     [u_e, p_e, v_e, source, body_force, tbars, gbars, u_initial, p_initial, v_initial] \
         = getManuSolutions(dt, perm, mu, lmbda)
-
     
     ## Create mesh and define function space
     mesh = UnitCubeMesh(m_num, m_num, m_num)
@@ -221,17 +220,6 @@ def vic_sim( sim_name, \
     # Save solutions in xml format
     File(sim_name+ '/up_%d.xml' %0) << up
 
-    # dup   = Function(V)
-
-    ### Function spaces to calculate error
-    ## Create mesh and define function space
-    # mesh_e = UnitCubeMesh(16,16,16)
-
-    ##  Function Spaces
-    # Pu_e = VectorFunctionSpace(mesh_e, "Lagrange", p_order)  # space for displacements
-    # Pp_e = FunctionSpace(mesh_e, "Lagrange", p_order)        # space for pressure
-    # V_e  = MixedFunctionSpace([Pu,Pp])                    # mixed space
-
     # Save mesh
     # File(sim_name+'/mesh.xdmf') << mesh
 
@@ -272,25 +260,24 @@ def vic_sim( sim_name, \
             bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
             = dirichlet_boundaries(bd_tol, V, t+dt, u_e, p_e)
 
-
         # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
         #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
         bcs = [bc_ubottom, bc_uleft, bc_ufront, \
                bc_pbottom, bc_pleft, bc_pfront]#, bc_ptop, bc_pright, bc_pback]
 
-
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
         solver = NonlinearVariationalSolver(problem)
 
         # Calculate the new value of v_1 point-wise
-        u_tent = up.sub(0,deepcopy=True).vector().get_local()
-        u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
-        v_1_tent = v_1.vector().get_local()
-        v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
+        # u_tent = up.sub(0,deepcopy=True).vector().get_local()
+        # u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
+        # v_1_tent = v_1.vector().get_local()
+        # v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
 
-        # v_1  = project(v,Pu)
+        # Project the new value of v_1
+        v_1  = project(v,Pu)
         up_1.assign(up)
         # H_1 = project(H, HS)
         # S_1 = project(S, HS)
@@ -305,35 +292,6 @@ def vic_sim( sim_name, \
 
     return 0
 
-
-
-def time_error(u_e, p_e, up, up_1, Pu_e, Pp_e, t1, t2, t):
-    u2_tent, p2_tent = up.split(deepcopy=True) 
-    u1_tent, p1_tent = up_1.split(deepcopy=True)
-
-    u2 = interpolate(u2_tent, Pu_e)
-    u1 = interpolate(u1_tent, Pu_e)
-    p2 = interpolate(p2_tent, Pp_e)
-    p1 = interpolate(p1_tent, Pp_e)
-
-    uh = u1+ (u2-u1)/(t2-t1)*(t-t1)
-    ph = p1+ (p2-p1)/(t2-t1)*(t-t1)
-    
-    # update u_e, p_e
-    u_e.t = t
-    p_e.t = t
-
-    u_e_intp = interpolate(u_e, Pu_e)
-    p_e_intp = interpolate(p_e, Pp_e)
-
-    eu_local = (u_e_intp-uh)**2*dx
-    Eu = sqrt(assemble(eu_local))
-
-    ep_local = (p_e_intp-ph)**2*dx
-    Ep = sqrt(assemble(ep_local))
-
-    return Eu, Ep
-    
 
 def save_mat(up, sim_name):
     # Save solutions in MATLAB format using scipy.io
