@@ -78,7 +78,7 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             tb.update(t/sim_params['T_total'])
 
             # set time (use a half-point for a better integration)
-            u_e.t = t-ddt/2.0
+            v_e.t = t-ddt/2.0
             p_e.t = t-ddt/2.0
             t_const = Constant(t-ddt/2.0)
 
@@ -86,7 +86,7 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
 
             ### L2 norms
-            error_u = (uh-u_e)**2*dx
+            error_u = (uh-v_e)**2*dx
             error_p = (ph-p_e)**2*dx
             Eu += (assemble(error_u))*ddt
             Ep += (assemble(error_p))*ddt
@@ -115,7 +115,7 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             ### H1 norm by dolfin function with projection
             u_h = project(uh, Pu)
             p_h = project(ph, Pp)
-            Eu3 += errornorm(u_e, u_h, norm_type='H1', degree_rise=0)**2*ddt
+            Eu3 += errornorm(v_e, u_h, norm_type='H1', degree_rise=0)**2*ddt
             Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2*ddt
 
             ### H1 norm by direct vector manipulation (NOT WORKING)

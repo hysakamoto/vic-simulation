@@ -9,7 +9,7 @@ from run_simulation import runSim
 
 base_name = 'test/'
 
-set_log_level(TRACE)
+set_log_level(ERROR)
 # PETScOptions.set("pc_type", "ml") 
 # PETScOptions.set("log_summary", "LOG")  
 
@@ -43,7 +43,11 @@ sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5
 
 # mesh convergence
 sim_params['m_num'] = 8
-sim_params['max_it'] = 10
+sim_params['max_it'] = 20
+
+
+from subprocess import call
+call(["rm", "-r", "/Users/ysakamoto/Desktop/current_research/fenics-proj/vic-simulation/test"])
 
 runSim(base_name, mat_params, sim_params)
 

@@ -36,7 +36,7 @@ sim_params = {'omega'   : 1.0,   # forward:0, backward: 1, C-N: 0.5
 ## convergence parameters
 # mesh_refinement = [1,2,4,8,16,32]
 mesh_refinement = [1,2,4,8,16]
-max_iterations = [1,2,4,8,16,32,64]
+max_iterations = [2,4,8,16,32,64]
 
 max_mer = 16
 max_mit = 64

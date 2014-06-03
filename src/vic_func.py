@@ -58,8 +58,8 @@ def vic_sim( sim_name, \
     ## Functions
     dup  = TrialFunction(V)    # Incremental displacement-pressure
     wq   = TestFunction(V)     # Test function
-    up   = Function(V)         # Displacement-pressure from previous iteration
-    u, p = split(up)           # Function in each subspace to write the functional
+    up   = Function(V)         # Velocity-pressure from previous iteration
+    v, p = split(up)           # Function in each subspace to write the functional
     w, q = split(wq)           # Test Function split
 
     ## Boundary Conditions
@@ -80,21 +80,20 @@ def vic_sim( sim_name, \
     # Define Dirichlet boundaries
     bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
         bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
-        = dirichlet_boundaries(bd_tol, V, dt, u_e, p_e)
+        = dirichlet_boundaries(bd_tol, V, dt, v_e, p_e)
 
-    # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-    #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
-
-    bcs = [bc_ubottom, bc_uleft, bc_ufront, \
-           bc_pbottom, bc_pleft, bc_pfront]#, bc_ptop, bc_pright, bc_pback]
-
-    # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
+    bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, \
+           bc_pbottom, bc_pleft, bc_pfront]
 
     ## Initial conditions
-    # up_1 = Function(V)
-    # u_1, p_1 = split(up_1)
     u_1 = Function(Pu)
     assign (u_1, interpolate(u_initial,Pu))
+
+    ## Poroelasticity!!!!
+    omega_const = Constant(omega)
+    v_1 = Function(Pu)
+    assign (v_1, interpolate(v_initial,Pu))
+    u = (omega_const*v + (1.0-omega_const)*v_1)*dt_const + u_1
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -170,13 +169,6 @@ def vic_sim( sim_name, \
     # Sc = S+gamma_const*H
     Sc = S
 
-    ## Poroelasticity!!!!
-    omega_const = Constant(omega)
-    v_1 = Function(Pu)
-    assign (v_1, interpolate(v_initial,Pu))
-    # u = (omega_const*v + (1.0-omega_const)*v_1)*dt_const + u_1
-    v = ((u-u_1)/dt_const - (1.0-omega_const)*v_1)/omega_const
-
     # Compute residual
     R = (inner(Sc, ddotE) + dot(J*(K_perm*invF.T*grad(p)), invF.T*grad(q)))*dx \
         - p*J*inner(ddotF, invF.T)*dx                                         \
@@ -189,9 +181,8 @@ def vic_sim( sim_name, \
         + (gbar_top*q)*ds_neumann(0)\
         + (gbar_right*q)*ds_neumann(2) \
         + (gbar_back*q)*ds_neumann(4) \
-
-        # - (inner(tbar_left,w))*ds_neumann(3) \
-        # - (inner(tbar_front,w))*ds_neumann(5) \
+        # - (dot(tbar_left,w))*ds_neumann(3) \
+        # - (dot(tbar_front,w))*ds_neumann(5) \
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -211,13 +202,16 @@ def vic_sim( sim_name, \
     solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
-    assign (up.sub(0), interpolate(u_initial,Pu))
+    assign (up.sub(0), interpolate(v_initial,Pu))
     assign (up.sub(1), interpolate(p_initial,Pp))
 
     dfile = File(sim_name + "/displacement.pvd");
+    vfile = File(sim_name + "/velocity.pvd");
     pfile = File(sim_name + "/pressure.pvd");
     dpfile = File(sim_name + "/up.pvd");
-    dfile << (up.sub(0),0.0);
+    u_1.rename('u', 'u_solution')
+    dfile << (u_1,0.0);
+    vfile << (up.sub(0), 0.0)
     pfile << (up.sub(1),0.0);
     # Save solutions in xml format
     File(sim_name+ '/up_%d.xml' %0) << up
@@ -240,14 +234,10 @@ def vic_sim( sim_name, \
         # v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
 
         # Project the new value of v_1
-        # assign(v_1, ((up.sub(0)-u_1)/dt - (1.0-omega)*v_1)/omega)
-        v_1.vector()[:]=((up.sub(0,deepcopy=True).vector()-u_1.vector())/dt - (1.0-omega)*v_1.vector())/omega        
-        v_2  = project(v,Pu)
-        pdb.set_trace()
 
-        assign(u_1, up.sub(0))
-        # H_1 = project(H, HS)
-        # S_1 = project(S, HS)
+        u = (omega_const*v + (1.0-omega_const)*v_1)*dt_const + u_1
+        u_1 = project(u,Pu)
+        assign(v_1, up.sub(0))
 
         ## update time
         t    += dt
@@ -270,25 +260,28 @@ def vic_sim( sim_name, \
         tbar_front.t = t+dt 
         # update exact solutions
         u_e.t = t+dt
+        v_e.t = t+dt
         p_e.t = t+dt
 
         # Define Dirichlet boundaries
         bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
             bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
-            = dirichlet_boundaries(bd_tol, V, t+dt, u_e, p_e)
+            = dirichlet_boundaries(bd_tol, V, t+dt, v_e, p_e)
 
-        # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-        #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+        # bcs = [bc_ubottom, bc_uleft, bc_ufront,\
+               # bc_pbottom, bc_pleft, bc_pfront]
+        bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_utop, bc_uright, bc_uback, \
+               bc_pbottom, bc_pleft, bc_pfront]
 
-        bcs = [bc_ubottom, bc_uleft, bc_ufront, \
-               bc_pbottom, bc_pleft, bc_pfront]#, bc_ptop, bc_pright, bc_pback]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
         solver = NonlinearVariationalSolver(problem)
 
         # Save solution in VTK format
-        dfile << (up.sub(0), t);
+        u_1.rename('u', 'u_solution') 
+        dfile << (u_1, t);
+        vfile << (up.sub(0), t);
         pfile << (up.sub(1), t);
         # Save solutions in xml format
         File(sim_name+ '/up_%d.xml' %tn) << up
