@@ -3,9 +3,15 @@
 import sys
 sys.path.append("src") 
 
+from  dolfin import *
+
 from run_simulation import runSim
 
 base_name = 'test/'
+
+set_log_level(TRACE)
+# PETScOptions.set("pc_type", "ml") 
+# PETScOptions.set("log_summary", "LOG")  
 
 ## Generate the manufactured solutions, bcs, ics
 from mpi4py import MPI

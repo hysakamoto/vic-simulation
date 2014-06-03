@@ -1,8 +1,7 @@
 """ Simulation of VIC"""
 
-# Simulation of hyperelastic solid in initial configuration
+# Simulation of poro-vosco-hyperelastic solid in initial configuration
 
-# Begin simulation
 import pdb
 import numpy as np
 import scipy.io
@@ -11,8 +10,8 @@ from dolfin import *
 
 import newton_solve
 from vic_bcs import *
-
 from manufactured_solutions import getManuSolutions
+from cui_toolbar import toolbar
 
 # DEBUG
 # set_log_level(DEBUG) #PROGRESS
@@ -202,7 +201,7 @@ def vic_sim( sim_name, \
 
     # solver.parameters["nonlinear_solver"] = "newton"
     # solver.parameters["newton_solver"]["linear_solver"] = "bicgstab"
-    # solver.parameters["newton_solver"]["preconditioner"] = "ilu"
+    # solver.parameters["newton_solver"]["preconditioner"] = "sor"
 
     solver.parameters["nonlinear_solver"] = "snes"
     solver.parameters["snes_solver"]["line_search"] = "bt"

@@ -11,8 +11,8 @@ from error_calculations import errorCalc
 
 # mesh-time
 
-set_log_level(CRITICAL)
-base_name = 'crn/'
+set_log_level(ERROR)
+base_name = 'bkn/'
 
 # material parameters
 mat_params = {'gamma'      : 0.0, 
@@ -25,7 +25,7 @@ mat_params = {'gamma'      : 0.0,
 }
 
 # simulation parameters
-sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5 
+sim_params = {'omega'   : 1.0,   # forward:0, backward: 1, C-N: 0.5 
               'T_total' : 10.0,
               'max_it'  : 64,
               'm_num'   : 32,

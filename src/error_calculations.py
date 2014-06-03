@@ -77,7 +77,6 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             t += ddt
             tb.update(t/sim_params['T_total'])
 
-
             # set time (use a half-point for a better integration)
             u_e.t = t-ddt/2.0
             p_e.t = t-ddt/2.0
