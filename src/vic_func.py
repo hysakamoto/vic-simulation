@@ -91,10 +91,10 @@ def vic_sim( sim_name, \
     # bcs = [bc_ubottom, bc_uleft, bc_ufront, bc_pbottom, bc_pleft, bc_pfront]
 
     ## Initial conditions
-    up_1   = Function(V)         # Displacement-pressure from previous iteration
-    u_1, p_1 = split(up_1)       # Function in each subspace to write the functional
-    assign (up_1.sub(0), interpolate(u_initial,Pu))
-    assign (up_1.sub(1), interpolate(p_initial,Pp))
+    # up_1 = Function(V)
+    # u_1, p_1 = split(up_1)
+    u_1 = Function(Pu)
+    assign (u_1, interpolate(u_initial,Pu))
 
     ## Kinematics
     I    = Identity(dim)           # Identity tensor
@@ -174,6 +174,7 @@ def vic_sim( sim_name, \
     omega_const = Constant(omega)
     v_1 = Function(Pu)
     assign (v_1, interpolate(v_initial,Pu))
+    # u = (omega_const*v + (1.0-omega_const)*v_1)*dt_const + u_1
     v = ((u-u_1)/dt_const - (1.0-omega_const)*v_1)/omega_const
 
     # Compute residual
@@ -210,7 +211,9 @@ def vic_sim( sim_name, \
     solver.parameters["snes_solver"]["method"] = "tr"
 
     ## Save initial conditions in VTK format
-    assign(up, up_1)
+    assign (up.sub(0), interpolate(u_initial,Pu))
+    assign (up.sub(1), interpolate(p_initial,Pp))
+
     dfile = File(sim_name + "/displacement.pvd");
     pfile = File(sim_name + "/pressure.pvd");
     dpfile = File(sim_name + "/up.pvd");
@@ -226,18 +229,33 @@ def vic_sim( sim_name, \
     while tn<max_it:
         print 'time = ', (t+dt)
 
-        # solve
+        ## solve
         solver.solve()
         
-        # update
+        ## Update the _1 values
+        # Calculate the new value of v_1 point-wise
+        # u_tent = up.sub(0,deepcopy=True).vector().get_local()
+        # u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
+        # v_1_tent = v_1.vector().get_local()
+        # v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
+
+        # Project the new value of v_1
+        # assign(v_1, ((up.sub(0)-u_1)/dt - (1.0-omega)*v_1)/omega)
+        v_1.vector()[:]=((up.sub(0,deepcopy=True).vector()-u_1.vector())/dt - (1.0-omega)*v_1.vector())/omega        
+        v_2  = project(v,Pu)
+        pdb.set_trace()
+
+        assign(u_1, up.sub(0))
+        # H_1 = project(H, HS)
+        # S_1 = project(S, HS)
+
+        ## update time
         t    += dt
         tn   += 1
 
-        # update body force
+        ## Update parameters
         body_force.t = t+dt
-        # update source term
         source.t = t+dt
-        # update boundary conditions
         gbar_top.t = t+dt
         gbar_bottom.t = t+dt
         gbar_right.t = t+dt
@@ -268,18 +286,6 @@ def vic_sim( sim_name, \
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
         solver = NonlinearVariationalSolver(problem)
-
-        # Calculate the new value of v_1 point-wise
-        # u_tent = up.sub(0,deepcopy=True).vector().get_local()
-        # u_1_tent = up_1.sub(0,deepcopy=True).vector().get_local()
-        # v_1_tent = v_1.vector().get_local()
-        # v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
-
-        # Project the new value of v_1
-        v_1  = project(v,Pu)
-        up_1.assign(up)
-        # H_1 = project(H, HS)
-        # S_1 = project(S, HS)
 
         # Save solution in VTK format
         dfile << (up.sub(0), t);
