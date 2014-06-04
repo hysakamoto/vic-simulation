@@ -238,12 +238,14 @@ def vic_sim( sim_name, \
         # v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
 
         # Project the new value of v_1
-        u_1_local = u_1.vector().get_local()
-        v_local = up.sub(0,deepcopy=True).vector().get_local()
-        v_1_local = v_1.vector().get_local()
-        u_1.vector().set_local( u_1_local + (omega*v_local + (1.0-omega)*v_1_local)*dt )
-        
-        # u_1.vector()[:] =  u_1.vector() + (omega*up.sub(0,deepcopy=True).vector() + (1.0-omega)*v_1.vector()) *dt
+        # u_1_local = u_1.vector().get_local()
+        # v_local = up.sub(0,deepcopy=True).vector().get_local()
+        # v_1_local = v_1.vector().get_local()
+        # u_1.vector().set_local( u_1_local + (omega*v_local + (1.0-omega)*v_1_local)*dt )
+
+        u_1.vector()[:] =  u_1.vector() + (omega*up.sub(0,deepcopy=True).vector() + (1.0-omega)*v_1.vector()) *dt
+        # u_1.vector().axpy(1.0, (omega*up.sub(0,deepcopy=True).vector() + (1.0-omega)*v_1.vector()) *dt)
+
         # u_1 = project(u,Pu)
 
         assign(v_1, up.sub(0))

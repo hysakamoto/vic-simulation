@@ -9,7 +9,7 @@ from run_simulation import runSim
 
 base_name = 'test/'
 
-set_log_level(ERROR)
+set_log_level(PROGRESS)
 # PETScOptions.set("pc_type", "ml") 
 # PETScOptions.set("log_summary", "LOG")  
 
@@ -33,7 +33,7 @@ mat_params = {'gamma'      : 0.0,
 }
 
 # simulation parameters
-sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5 
+sim_params = {'omega'   : 1.0,   # forward:0, backward: 1, C-N: 0.5 
               'T_total' : 10.0,
               'max_it'  : 64,
               'm_num'   : 32,
@@ -46,8 +46,14 @@ sim_params['m_num'] = 8
 sim_params['max_it'] = 10
 
 
-from subprocess import call
-call(["rm", "-r", "/Users/ysakamoto/Desktop/current_research/fenics-proj/vic-simulation/test"])
+
+## Remove directory before start
+if rank == 0:
+    from subprocess import call
+    call(["rm", "-r", "test"])
+comm.barrier()
+
+
 
 runSim(base_name, mat_params, sim_params)
 
