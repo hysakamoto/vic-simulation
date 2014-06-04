@@ -43,11 +43,13 @@ sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5
 
 # mesh convergence
 sim_params['m_num'] = 8
-sim_params['max_it'] = 20
+sim_params['max_it'] = 10
 
 
 from subprocess import call
 call(["rm", "-r", "/Users/ysakamoto/Desktop/current_research/fenics-proj/vic-simulation/test"])
 
 runSim(base_name, mat_params, sim_params)
+
+# u_1.vector()[:] =  u_1.vector()[:]+omega*up.sub(0,deepcopy=True).vector()*dt
 

@@ -12,7 +12,7 @@ from error_calculations import errorCalc
 # mesh-time
 
 set_log_level(ERROR)
-base_name = 'crn/'
+base_name = 'crn_/'
 
 # material parameters
 mat_params = {'gamma'      : 0.0, 

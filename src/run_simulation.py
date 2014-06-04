@@ -38,6 +38,7 @@ def runSim( base_name, mat_params, sim_params ):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     if rank==0:
+        print '**** Running simulation '+sim_name + ' ****'
         exist = write_params(sim_name, mat_params, sim_params)
     else:
         exist = None

@@ -60,10 +60,12 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
         u_1 = up_1.sub(0)
         p_1 = up_1.sub(1)
 
+        plot(u_1)
+
         up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
         u_2 = up_2.sub(0)
         p_2 = up_2.sub(1)
-
+ 
         t1 = Constant(t)
         t2 = Constant(t+dt)
 
