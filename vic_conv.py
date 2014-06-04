@@ -12,7 +12,7 @@ from error_calculations import errorCalc
 # mesh-time
 
 set_log_level(ERROR)
-base_name = 'crn_/'
+base_name = 'crn/'
 
 # material parameters
 mat_params = {'gamma'      : 0.0, 
@@ -25,7 +25,7 @@ mat_params = {'gamma'      : 0.0,
 }
 
 # simulation parameters
-sim_params = {'omega'   : 1.0,   # forward:0, backward: 1, C-N: 0.5 
+sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5 
               'T_total' : 10.0,
               'max_it'  : 64,
               'm_num'   : 32,
@@ -117,8 +117,8 @@ sim_params['max_it'] = max_mit
 ##### PLOT RESULTS ######
 
 # mesh-L2
-plt.loglog(mesh_refinement, Eus_mesh, '-o')
-plt.loglog(mesh_refinement, Eps_mesh, '-o')
+plt.loglog(mesh_refinement, Eus2_mesh, '-o')
+plt.loglog(mesh_refinement, Eps2_mesh, '-o')
 plt.legend(('displacement', 'pressure'))
 plt.title('mesh refinement vs L2 error')
 plt.savefig(base_name + '/' + 'L2_errors_mesh.jpg')
@@ -133,8 +133,8 @@ plt.savefig(base_name + '/' + 'H1_errors_mesh.jpg')
 plt.show()
 
 # time-L2
-plt.loglog(max_iterations, Eus_time, '-o')
-plt.loglog(max_iterations, Eps_time, '-o')
+plt.loglog(max_iterations, Eus2_time, '-o')
+plt.loglog(max_iterations, Eps2_time, '-o')
 plt.legend(('displacement', 'pressure'))
 plt.title('time steps vs L2 error')
 plt.savefig(base_name + '/' + 'L2_errors_time.jpg')
@@ -151,22 +151,22 @@ plt.show()
 
 ## Convergence Rates
 
-EuL2_mesh_rate = (np.log(Eus_mesh[0])-np.log(Eus_mesh[5]))/\
-                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[5]))
-EpL2_mesh_rate = (np.log(Eps_mesh[0])-np.log(Eps_mesh[3]))/\
-                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[3]))
-EuL2_time_rate = (np.log(Eus_time[0])-np.log(Eus_time[6]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[6]))
-EpL2_time_rate = (np.log(Eps_time[0])-np.log(Eps_time[4]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[4]))
-EuH1_mesh_rate = (np.log(Eus3_mesh[0])-np.log(Eus3_mesh[5]))/\
-                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[5]))
-EpH1_mesh_rate = (np.log(Eps3_mesh[0])-np.log(Eps3_mesh[3]))/\
-                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[3]))
-EuH1_time_rate = (np.log(Eus3_time[0])-np.log(Eus3_time[6]))/\
-    (np.log(max_iterations[0])-np.log(max_iterations[6]))
-EpH1_time_rate = (np.log(Eps3_time[0])-np.log(Eps3_time[3]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[3]))
+EuL2_mesh_rate = (np.log(Eus2_mesh[0])-np.log(Eus2_mesh[-1]))/\
+                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[-1]))
+EpL2_mesh_rate = (np.log(Eps2_mesh[0])-np.log(Eps2_mesh[-1]))/\
+                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[-1]))
+EuL2_time_rate = (np.log(Eus2_time[0])-np.log(Eus2_time[-3]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
+EpL2_time_rate = (np.log(Eps2_time[0])-np.log(Eps2_time[-3]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
+EuH1_mesh_rate = (np.log(Eus3_mesh[0])-np.log(Eus3_mesh[-2]))/\
+                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[-2]))
+EpH1_mesh_rate = (np.log(Eps3_mesh[0])-np.log(Eps3_mesh[-2]))/\
+                 (np.log(mesh_refinement[0])-np.log(mesh_refinement[-2]))
+EuH1_time_rate = (np.log(Eus3_time[0])-np.log(Eus3_time[-3]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
+EpH1_time_rate = (np.log(Eps3_time[0])-np.log(Eps3_time[-3]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
 
 print 'Mesh Displacement L2 error convergence rate = ', \
     EuL2_mesh_rate

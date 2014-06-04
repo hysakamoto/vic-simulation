@@ -60,8 +60,6 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
         u_1 = up_1.sub(0)
         p_1 = up_1.sub(1)
 
-        plot(u_1)
-
         up_2 = Function(V, sim_name + '/up_%d.xml'%(tn))
         u_2 = up_2.sub(0)
         p_2 = up_2.sub(1)
@@ -87,13 +85,17 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             uh = (u_2-u_1)/(t2-t1)*(t_const-t1) + u_1
             ph = (p_2-p_1)/(t2-t1)*(t_const-t1) + p_1
 
-            ### L2 norms
-            error_u = (uh-v_e)**2*dx
-            error_p = (ph-p_e)**2*dx
-            Eu += (assemble(error_u))*ddt
-            Ep += (assemble(error_p))*ddt
+            # ### L2 norms
+            # error_u = (uh-v_e)**2*dx
+            # error_p = (ph-p_e)**2*dx
+            # Eu += (assemble(error_u))*ddt
+            # Ep += (assemble(error_p))*ddt
 
-                        
+            ### L2 norm by dolfin function with projection
+            u_h = project(uh, Pu)
+            p_h = project(ph, Pp)
+            Eu2 += errornorm(v_e, u_h, norm_type='L2', degree_rise=0, mesh=mesh_e)**2*ddt
+            Ep2 += errornorm(p_e, p_h, norm_type='L2', degree_rise=0, mesh=mesh_e)**2*ddt                        
             ### H1 seminorms
             # set the Expression function space
             # u_e2 = Expression(u_e.cppcode, t=u_e.t, element=Pu_e.ufl_element())
@@ -117,8 +119,8 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
             ### H1 norm by dolfin function with projection
             u_h = project(uh, Pu)
             p_h = project(ph, Pp)
-            Eu3 += errornorm(v_e, u_h, norm_type='H1', degree_rise=0)**2*ddt
-            Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0)**2*ddt
+            Eu3 += errornorm(v_e, u_h, norm_type='H1', degree_rise=0, mesh=mesh_e)**2*ddt
+            Ep3 += errornorm(p_e, p_h, norm_type='H1', degree_rise=0, mesh=mesh_e)**2*ddt
 
             ### H1 norm by direct vector manipulation (NOT WORKING)
             # uph = Function(V)

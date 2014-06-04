@@ -82,11 +82,11 @@ def vic_sim( sim_name, \
         bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront \
         = dirichlet_boundaries(bd_tol, V, dt, v_e, p_e)
 
-    bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+    # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+    #     bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
-    # bcs = [bc_ubottom,\
-    #        bc_pbottom, bc_pleft, bc_pfront]
+    bcs = [bc_ubottom,\
+           bc_pbottom, bc_pleft, bc_pfront]
 
     ## Initial conditions
     u_1 = Function(Pu)
@@ -178,14 +178,14 @@ def vic_sim( sim_name, \
         + (q*J*inner(grad(v),invF.T))*dx                                      \
         - (source*q)*dx \
         + (dot(body_force,w))*dx \
-        # - (dot(tbar_top,w))*ds_neumann(0) \
-        # - (dot(tbar_right,w))*ds_neumann(2) \
-        # - (dot(tbar_back,w))*ds_neumann(4) \
-        # + (gbar_top*q)*ds_neumann(0)\
-        # + (gbar_right*q)*ds_neumann(2) \
-        # + (gbar_back*q)*ds_neumann(4) \
-        # - (dot(tbar_left,w))*ds_neumann(3) \
-        # - (dot(tbar_front,w))*ds_neumann(5) \
+        - (dot(tbar_top,w))*ds_neumann(0) \
+        - (dot(tbar_right,w))*ds_neumann(2) \
+        - (dot(tbar_back,w))*ds_neumann(4) \
+        + (gbar_top*q)*ds_neumann(0)\
+        + (gbar_right*q)*ds_neumann(2) \
+        + (gbar_back*q)*ds_neumann(4) \
+        - (dot(tbar_left,w))*ds_neumann(3) \
+        - (dot(tbar_front,w))*ds_neumann(5) \
 
     # Compute Jacobian of R
     Jac = derivative(R, up, dup)
@@ -238,7 +238,12 @@ def vic_sim( sim_name, \
         # v_1.vector().set_local(((u_tent-u_1_tent)/dt - (1.0-omega)*v_1_tent)/omega)
 
         # Project the new value of v_1
-        u_1.vector()[:] =  u_1.vector() + (omega*up.sub(0,deepcopy=True).vector() + (1.0-omega)*v_1.vector()) *dt
+        u_1_local = u_1.vector().get_local()
+        v_local = up.sub(0,deepcopy=True).vector().get_local()
+        v_1_local = v_1.vector().get_local()
+        u_1.vector().set_local( u_1_local + (omega*v_local + (1.0-omega)*v_1_local)*dt )
+        
+        # u_1.vector()[:] =  u_1.vector() + (omega*up.sub(0,deepcopy=True).vector() + (1.0-omega)*v_1.vector()) *dt
         # u_1 = project(u,Pu)
 
         assign(v_1, up.sub(0))
@@ -274,8 +279,8 @@ def vic_sim( sim_name, \
 
         bcs = [bc_ubottom,\
                bc_pbottom, bc_pleft, bc_pfront]
-        bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
-               bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
+        # bcs = [bc_utop, bc_ubottom, bc_uright, bc_uleft, bc_uback, bc_ufront, \
+        #        bc_ptop, bc_pbottom, bc_pright, bc_pleft, bc_pback, bc_pfront]
 
         # define problem
         problem = NonlinearVariationalProblem(R, up, bcs=bcs, J=Jac)
