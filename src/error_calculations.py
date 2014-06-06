@@ -46,7 +46,7 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     ##  Mesh and Function Spaces
     # mesh = Mesh(sim_name+'/mesh.xdmf')
     mesh = UnitCubeMesh(sim_params['m_num'], sim_params['m_num'], sim_params['m_num'])
-    File(sim_name+'/mesh.xdmf') << mesh
+    File(sim_name+'mesh.xdmf') << mesh
     Pu = VectorFunctionSpace(mesh, "Lagrange", sim_params['p_order'])
     Pp = FunctionSpace(mesh, "Lagrange", sim_params['p_order'])
     V  = MixedFunctionSpace([Pu,Pp])

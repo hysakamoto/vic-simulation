@@ -247,8 +247,9 @@ def vic_sim( sim_name, \
         # u_1.vector().axpy(1.0, (omega*up.sub(0,deepcopy=True).vector() + (1.0-omega)*v_1.vector()) *dt)
 
         # u_1 = project(u,Pu)
-
+        # pdb.set_trace()
         assign(v_1, up.sub(0))
+        # v_1.vector()[:]= up.sub(0,deepcopy=True).vector()
 
         ## update time
         t    += dt

@@ -35,10 +35,10 @@ sim_params = {'omega'   : 0.5,   # forward:0, backward: 1, C-N: 0.5
 
 ## convergence parameters
 # mesh_refinement = [1,2,4,8,16,32]
-mesh_refinement = [1,2,4,8,16]
-max_iterations = [2,4,8,16,32,64]
+mesh_refinement = [1,2,4,8,16,32]
+max_iterations = [4,8,16,32,64]
 
-max_mer = 16
+max_mer = 32
 max_mit = 64
 
 # errors
@@ -155,18 +155,18 @@ EuL2_mesh_rate = (np.log(Eus2_mesh[0])-np.log(Eus2_mesh[-1]))/\
                  (np.log(mesh_refinement[0])-np.log(mesh_refinement[-1]))
 EpL2_mesh_rate = (np.log(Eps2_mesh[0])-np.log(Eps2_mesh[-1]))/\
                  (np.log(mesh_refinement[0])-np.log(mesh_refinement[-1]))
-EuL2_time_rate = (np.log(Eus2_time[0])-np.log(Eus2_time[-3]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
-EpL2_time_rate = (np.log(Eps2_time[0])-np.log(Eps2_time[-3]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
+EuL2_time_rate = (np.log(Eus2_time[0])-np.log(Eus2_time[-1]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-1]))
+EpL2_time_rate = (np.log(Eps2_time[0])-np.log(Eps2_time[-1]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-1]))
 EuH1_mesh_rate = (np.log(Eus3_mesh[0])-np.log(Eus3_mesh[-2]))/\
                  (np.log(mesh_refinement[0])-np.log(mesh_refinement[-2]))
 EpH1_mesh_rate = (np.log(Eps3_mesh[0])-np.log(Eps3_mesh[-2]))/\
                  (np.log(mesh_refinement[0])-np.log(mesh_refinement[-2]))
-EuH1_time_rate = (np.log(Eus3_time[0])-np.log(Eus3_time[-3]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
-EpH1_time_rate = (np.log(Eps3_time[0])-np.log(Eps3_time[-3]))/\
-                 (np.log(max_iterations[0])-np.log(max_iterations[-3]))
+EuH1_time_rate = (np.log(Eus3_time[0])-np.log(Eus3_time[-1]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-1]))
+EpH1_time_rate = (np.log(Eps3_time[0])-np.log(Eps3_time[-1]))/\
+                 (np.log(max_iterations[0])-np.log(max_iterations[-1]))
 
 print 'Mesh Displacement L2 error convergence rate = ', \
     EuL2_mesh_rate
@@ -188,12 +188,12 @@ print 'Time Pressure H1 error convergence rate = ', \
 
 ## Output to file
 with open(base_name + '/errors.py', 'w') as f:
-    f.write('EuL2_mesh = ' + str(Eus_mesh)+'\n')
-    f.write('EpL2_mesh = ' + str(Eps_mesh)+'\n')
+    f.write('EuL2_mesh = ' + str(Eus2_mesh)+'\n')
+    f.write('EpL2_mesh = ' + str(Eps2_mesh)+'\n')
     f.write('EuH1_mesh = ' + str(Eus3_mesh)+'\n')
     f.write('EpH1_mesh = ' + str(Eps3_mesh)+'\n')
-    f.write('EuL2_time = ' + str(Eus_time)+'\n')
-    f.write('EpL2_time = ' + str(Eps_time)+'\n')
+    f.write('EuL2_time = ' + str(Eus2_time)+'\n')
+    f.write('EpL2_time = ' + str(Eps2_time)+'\n')
     f.write('EuH1_time = ' + str(Eus3_time)+'\n')
     f.write('EpH1_time = ' + str(Eps3_time)+'\n')
 
@@ -209,8 +209,3 @@ with open(base_name + '/errors.py', 'w') as f:
     f.write('EpH1_time_rate = ' + str(EpH1_time_rate)+'\n')
 
 
-
-# A = [0.016984484000945266, 0.003620986790733252, 0.0009605201341572476, 0.001231537706287947, 0.0013764656561359874, 0.001415489361134992, 0.0014254100429035416]
-# B = [0.5022122432696464, 0.11371038131558306, 0.030826510023513484, 0.009615154207164462, 0.004518699535452111, 0.003383338520246388, 0.0031324720533711745]
-# C = [0.08819447320545222, 0.04710652215528491, 0.016930969720366555, 0.004920670105373137, 0.0014468970724907848]
-# D = [0.1920775348159219, 0.0969587566721823, 0.033902293135667554, 0.009841815798289924, 0.0029976417772129976]

@@ -11,10 +11,10 @@ class toolbar:
     def update(self, percentage):
         new_progress = int(percentage*self.toolbar_width)
 
-        if self.progress >= new_progress:
+        if self.progress+0.1 >= new_progress:
             return
 
-        self.progress = int(percentage*self.toolbar_width)
+        self.progress = new_progress
 
         # setup toolbar
         sys.stdout.write("[%s]" % (" " * self.toolbar_width))
