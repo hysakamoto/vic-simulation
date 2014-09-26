@@ -142,4 +142,3 @@ def errorCalc(base_name, max_mer, max_mit, sim_params, mat_params):
     Ep4 = sqrt(Ep4)
 
     return [Eu, Eu2, Eu3, Eu4], [Ep, Ep2, Ep3, Ep4]
-

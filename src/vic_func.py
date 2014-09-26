@@ -221,7 +221,7 @@ def vic_sim( sim_name, \
     File(sim_name+ '/u_%d.xml' %0) << u_1;
 
     # Save mesh
-    # File(sim_name+'/mesh.xdmf') << mesh
+    File(sim_name+'/mesh.xml') << mesh
 
     ### Run Simulation
     while tn<max_it:

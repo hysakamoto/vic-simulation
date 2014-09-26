@@ -42,7 +42,7 @@ def runSim( base_name, mat_params, sim_params ):
         exist = write_params(sim_name, mat_params, sim_params)
     else:
         exist = None
-    exist = comm.bcast(exist, root=0)
+        exist = comm.bcast(exist, root=0)
 
     # if the parameter file is already created, don't run the simulation
     if exist == -1:
@@ -52,25 +52,22 @@ def runSim( base_name, mat_params, sim_params ):
     time_start = time.time()
 
     dt = sim_params['T_total']/float(sim_params['max_it'])
-    vic_sim( sim_name, 
-             sim_params['m_num'], 
-             sim_params['p_order'], 
-             dt, 
-             sim_params['T_total'], 
-             sim_params['max_it'], 
-             sim_params['omega'],
-             mat_params['Ee'], 
-             mat_params['nu'], 
-             mat_params['gamma'], 
-             mat_params['tau'], 
-             mat_params['perm'], 
-             mat_params['top_trac'], 
-             mat_params['body_force'] )
+    vic_sim(sim_name,
+            sim_params['m_num'],
+            sim_params['p_order'], 
+            dt, 
+            sim_params['T_total'], 
+            sim_params['max_it'], 
+            sim_params['omega'],
+            mat_params['Ee'],
+            mat_params['nu'],
+            mat_params['gamma'], 
+            mat_params['tau'],
+            mat_params['perm'],
+            mat_params['top_trac'],
+            mat_params['body_force'])
 
     ## ending time
     time_end = time.time()
 
     return time_end - time_start
-
-
-
